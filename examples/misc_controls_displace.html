@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - displace controls</title>
+		<meta charset="utf-8">
+		<style>
+			body {
+				margin: 0px;
+				color: #fff;
+				font-family:Monospace;
+				text-align: center;
+				font-size: 15px;
+				line-height: 30px;
+				overflow: hidden;
+			}
+			#info {
+				position: absolute;
+				top: 0px; width: 100%;
+				padding: 15px;
+				z-index:100;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="info">
+			<a href="http://threejs.org" target="_blank">three.js</a> - look console
+		</div>
+
+		<script src="../build/three.min.js"></script>
+		<script src="js/controls/OrbitControls.js"></script>		
+		<script src="js/controls/DisplaceControls.js"></script>
+
+		<script>
+
+
+			var camera, scene, renderer, control; var model;
+
+			init();
+			animate();
+
+			function init() {
+
+
+				var sssr = '';
+				for ( var i = 0; i < 8; i ++ ) {
+					sssr = sssr + '<span id = "sound' + String( i )  + '"> </span>\n'; 
+				}
+
+				document.body.innerHTML = document.body.innerHTML + sssr;
+
+				renderer = new THREE.WebGLRenderer( { antialias: true } ); 
+				renderer.setClearColor( 0x6495ED );
+				//renderer.setSize( 800, 500 );
+				renderer.setSize( window.innerWidth, window.innerHeight );				
+				document.body.appendChild( renderer.domElement );
+
+				//
+
+				//camera = new THREE.PerspectiveCamera( 30, 800 / 500, 1, 2000 );
+				camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 2000 );				
+				camera.position.set( 100, 400, 600 );
+				camera.lookAt( new THREE.Vector3( 0, 0, 0 ) );
+
+				control = new THREE.OrbitControls( camera, renderer.domElement );
+				control.rotateSpeed = 1;
+				control.noZoom = false;
+				control.zoomSpeed = 1.2;
+				control.staticMoving = true;
+				control.minPolarAngle = Math.PI / 3;
+				control.maxPolarAngle = Math.PI / 3;
+
+				scene = new THREE.Scene();
+
+				var light = new THREE.DirectionalLight( 0xffffff, 1 );
+				light.position.set( 0, 500, 1000 );
+				scene.add( light );
+
+				var light = new THREE.AmbientLight( 0x222222 );
+				scene.add( light );
+
+
+				// world
+
+				var Texture = new THREE.ImageUtils.loadTexture( 'textures/checkerboard.jpg' );
+				Texture.wrapS = Texture.wrapT = THREE.RepeatWrapping;
+				Texture.repeat.set( 4, 4 );	Texture.offset.set( 0.5, 0 );
+
+				var Material = new THREE.MeshBasicMaterial( { map: Texture, side: THREE.DoubleSide } );
+				var Geometry = new THREE.PlaneGeometry( 400, 400, 1, 1 );
+
+				var checkerboard = new THREE.Mesh( Geometry, Material );
+				checkerboard.position.y = - 1;
+				checkerboard.rotation.x =  Math.PI / 2;
+				scene.add( checkerboard );
+
+
+				DisplaceControl1 = new DisplaceControls( camera, renderer.domElement );
+				DisplaceControl1.projectionMap = checkerboard; DisplaceControl1.fixed.y = true;				
+					
+				var radius = 20, h = 16, segments = 36;
+				var geometry = new THREE.CylinderGeometry( radius, radius, h, segments );
+				var material = new THREE.MeshPhongMaterial( { color: 0xFFFFF0 } );
+
+				var checker = new THREE.Mesh( geometry, material );
+
+				checker.position.set( -175, h / 2, 175 );
+				scene.add( checker ); DisplaceControl1.attach( checker );
+
+				var checker = new THREE.Mesh( geometry, material );
+
+				checker.position.set( -75, h / 2, 175 );
+				scene.add( checker ); DisplaceControl1.attach( checker );
+				
+				var object3D = new THREE.Object3D;
+				var mesh = new THREE.Mesh( geometry, material );
+				object3D.add( mesh ); 
+				var mesh = new THREE.Mesh( geometry, material );
+				mesh.position.y = h; mesh.rotation.x = Math.PI / 2; mesh.rotation.z = Math.PI / 2;
+				object3D.add( mesh );
+				object3D.position.set( 25, h / 2, 175 );				
+				scene.add( object3D );  DisplaceControl1.attach( object3D );				
+
+
+				DisplaceControl2 = new DisplaceControls( camera, renderer.domElement );
+				DisplaceControl2.projectionMap = checkerboard; DisplaceControl2.fixed.y = true;
+				DisplaceControl2.move = function() {
+				
+					this.container.style.cursor = 'move'
+					this.focused.position.x = 25 + 50 * Math.round( ( this.focused.position.x - 25 ) / 50 );
+					this.focused.position.z = 25 + 50 * Math.round( ( this.focused.position.z - 25 ) / 50 );
+
+				}
+
+				DisplaceControl2.mouseup = function() {
+
+					var x = ( this.focused.position.x - 25 ) / 50;
+					var z = ( this.focused.position.z - 25 ) / 50;
+					
+					var sum = Math.abs( ( x + z ) % 2 );
+					if ( sum == 0 ) { this.returnPrevious() }
+					this.container.style.cursor = 'auto';
+
+				}
+
+				DisplaceControl2.onclick = function() {
+
+					console.log( this.focused.name );
+					console.log( this.focusedpart.name );				
+
+				}
+					
+				var radius = 20, h = 16, segments = 36;
+				var geometry = new THREE.CylinderGeometry( radius, radius, h, segments );
+				var material = new THREE.MeshPhongMaterial( { color: 0x9B2D30 } );
+
+				var checker = new THREE.Mesh( geometry, material ); checker.name = 'checker';
+
+				checker.position.set( -125, h / 2, 125 );
+				scene.add( checker ); DisplaceControl2.attach( checker );
+
+				
+				var object3D = new THREE.Object3D;  object3D.name = 'two checkers';
+				var mesh = new THREE.Mesh( geometry, material.clone() );
+				object3D.add( mesh );
+				var mesh = new THREE.Mesh( geometry, material.clone() );
+				mesh.position.y = h; mesh.rotation.x = Math.PI / 2; mesh.rotation.z = Math.PI / 2;
+				object3D.add( mesh );
+				object3D.position.set( -25, h / 2, 125 );				
+				scene.add( object3D );  DisplaceControl2.attach( object3D );
+
+				var man = createSnowman(); 
+				DisplaceControl2.attach( man );
+				man.position.set( 75, 0, 125 );
+				scene.add( man ); 		
+
+
+				var jsonLoader = new THREE.JSONLoader();
+				jsonLoader.load( "models/Tux.js", addModelToScene ); 			
+				
+				
+				
+				DisplaceControl3 = new DisplaceControls( camera, renderer.domElement );
+				DisplaceControl3.projectionMap = checkerboard; DisplaceControl3.fixed.y = true;
+
+				DisplaceControl3.onclick = function() {
+
+					var mesh = new THREE.Mesh( this.focused.geometry.clone(), this.focused.material.clone() );
+					mesh.position.copy( this.focused.position );
+					mesh.material.transparent = true; mesh.material.opacity = 0.7;					
+					scene.add( mesh );
+					this.setfocus( mesh );
+
+				}
+
+				DisplaceControl3.mouseup = function() {
+
+					this.focused.material.transparent = false;
+					this.container.style.cursor = 'auto';
+
+				}
+
+				var radius = 20, h = 16, segments = 36;
+				var geometry = new THREE.CylinderGeometry( radius, radius, h, segments );
+				var material = new THREE.MeshPhongMaterial( { color: 0xFF00FF } );
+
+				var checker = new THREE.Mesh( geometry, material );
+
+				checker.position.set( -175, h / 2, 75 ); checker.scale.set( 1/2, 1/2, 1/2 );
+				scene.add( checker ); DisplaceControl3.attach( checker );
+
+
+				// piano
+
+
+				var autoMaterial = new THREE.MeshPhongMaterial( { color: 0x6a2089 } );
+				var selMaterial = new THREE.MeshPhongMaterial( { color: 0x00d9ff } );
+
+
+				DisplaceControl4 = new DisplaceControls( camera, renderer.domElement );
+				DisplaceControl4.displacing = false;
+				
+				DisplaceControl4.mouseover = function () {
+					this.container.style.cursor = 'pointer';
+					this.mouseovered.material = selMaterial;
+				}
+
+				DisplaceControl4.mouseout = function () {
+					this.container.style.cursor = 'auto';
+					this.mouseovered.material = autoMaterial;
+				}
+
+				DisplaceControl4.onclick = function() {
+					this.focused.position.y = -10; 
+					DHTMLSound( 'snd/' + String( this.item ) + '.mp3', 'sound' + String( this.item ), ' ' );
+				}
+
+				var geometry = new THREE.BoxGeometry( 20, 20, 80 );
+
+				for ( var i = 0; i < 8; i ++ ) {
+
+					var object = new THREE.Mesh( geometry, autoMaterial	);
+					object.position.set( i * 40 - 140, 10, -250 );
+					scene.add( object );
+					DisplaceControl4.attach( object );
+
+				}
+
+
+				DisplaceControl5 = new DisplaceControls( camera, renderer.domElement );
+				DisplaceControl5.displacing = false; DisplaceControl5.attach( checkerboard );
+				
+				DisplaceControl5.mouseover = function () {
+					control.enabled = false;
+				}
+
+				DisplaceControl5.mouseout = function () {
+					control.enabled = true;
+				}
+				
+			}
+
+			function addModelToScene( geometry, materials ) {
+
+				var material = new THREE.MeshFaceMaterial( materials );
+				model = new THREE.Mesh( geometry, material );
+				model.scale.set( 10, 10, 10 ); model.name = 'Tux';
+				model.rotation.x = -Math.PI/2; 
+				model.position.set( 175, 45, 125 );
+				scene.add( model ); DisplaceControl2.attach( model );
+	
+			}
+
+			function DHTMLSound( audioSrc, id, loop ) {
+
+					try {
+						document.getElementById( id ).innerHTML = 
+						' <audio src=" ' + audioSrc + 
+						' " autoplay="autoplay" ' + loop + 
+						' ></audio> ';
+					}
+					catch(exception) {}
+
+			}
+
+			function createSnowman() {
+			
+					var Snowman = new THREE.Object3D();
+	
+					var	material =  new THREE.MeshBasicMaterial({color: 0x33CCFF});
+					var geometry = new THREE.SphereGeometry( 30, 36, 36 );
+					var sphere1 = new THREE.Mesh( geometry, material);
+					sphere1.position.set( 0, 30, 0 ); sphere1.name = 'sphere1';
+					Snowman.add( sphere1 );
+
+	
+					var	material =  new THREE.MeshBasicMaterial({color: 0x00edff});
+					var geometry = new THREE.SphereGeometry( 22, 36, 36 );
+					var sphere2 = new THREE.Mesh( geometry, material); 					
+					sphere2.position.set( 0, 70, 0 ); sphere2.name = 'sphere2';				
+					Snowman.add( sphere2 ); 
+
+	
+					var	material =  new THREE.MeshBasicMaterial({color: 0xafeeee}); 
+					var geometry = new THREE.SphereGeometry( 16, 36, 36 );
+					var sphere3 = new THREE.Mesh( geometry, material);				
+					sphere3.position.set( 0, 103, 0 );	sphere3.name = 'sphere3';		
+					Snowman.add( sphere3 ); 
+
+	
+					var	material =  new THREE.MeshBasicMaterial({color: 0x1560bd}); 
+					var geometry = new THREE.SphereGeometry( 8, 16, 16 );
+					var sphere4 = new THREE.Mesh( geometry, material);	 					
+					sphere4.position.set( -25, 78, 0 );		
+					Snowman.add( sphere4 ); sphere4.name = 'hand right';
+	
+					sphere5 = new THREE.Mesh( geometry, material);	
+					sphere5.position.set( 25, 78, 0 );	
+					Snowman.add( sphere5 ); sphere5.name = 'hand left';
+	
+					// нос
+   
+					var	material = new THREE.MeshLambertMaterial( {color: 0xf36223} ); 
+					var geometry = new THREE.CylinderGeometry( 1, 4, 20, 16 ); 
+					var nose = new THREE.Mesh( geometry, material);	 	
+					nose.position.set(0, 101, 23); nose.rotation.x = Math.PI / 2;
+					nose.name = 'nose';
+					Snowman.add( nose ); 
+
+					// ведро
+   
+					var	material = new THREE.MeshLambertMaterial({color: 0x6600ff}); 
+					var geometry = new THREE.CylinderGeometry( 12, 17, 30, 24 ); 
+					var bucket = new THREE.Mesh( geometry, material);	 		
+					bucket.position.set(0, 125, -6 );  bucket.rotation.x = -Math.PI/11;
+					Snowman.add( bucket ); bucket.name = 'bucket';
+
+					// глаза		
+					var	material = new THREE.MeshLambertMaterial({color: 0x000000}); 
+					var geometry = new THREE.SphereGeometry( 3, 25, 5 ); 
+					var eye1 = new THREE.Mesh( geometry, material);					
+					eye1.position.set( -8, 105, 13 ); eye1.name = 'eye1';		
+					Snowman.add( eye1 );			
+
+					var eye2 = new THREE.Mesh( geometry, material);	
+					eye2.position.set( 8, 105, 13 ); eye2.name = 'eye2';
+					Snowman.add( eye2 );		
+
+					// рот
+					var	material = new THREE.MeshBasicMaterial({color: 0x560319});
+					var geometry = new THREE.CircleGeometry( 5, 5, 0, Math.PI );
+					var mouth = new THREE.Mesh( geometry, material);
+					mouth.rotation.z = Math.PI;
+					mouth.position.set( 0, 97, 13 );
+					Snowman.add( mouth ); 
+					
+					Snowman.name = 'Snowman';
+					return Snowman;
+
+			}
+
+
+			function animate() {
+
+					requestAnimationFrame(animate);
+					render();
+
+			}
+
+
+			function render() {
+
+					for ( var i = 0; i < DisplaceControl4.objects.length; i++ ) {
+					
+						if ( DisplaceControl4.objects[i].position.y < 10 ) {
+							DisplaceControl4.objects[i].position.y += 1;
+						}
+						
+					}
+
+
+
+					DisplaceControl1.update();
+					DisplaceControl2.update();
+					DisplaceControl3.update();
+					DisplaceControl4.update();
+					DisplaceControl5.update();
+
+					control.update();
+					renderer.render(scene, camera);
+
+			}
+
+		</script>
+
+	</body>
+</html>
