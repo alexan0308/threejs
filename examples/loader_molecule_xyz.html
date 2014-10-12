@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - loader molecule .XYZ</title>
+		<meta charset="utf-8">
+		<style>
+			body {
+				margin: 0px;
+				color: #fff;
+				font-family:Monospace;
+				text-align: center;
+				font-size: 15px;
+				line-height: 30px;
+				overflow: hidden;
+			}
+			#info {
+				position: absolute;
+				top: 0px; width: 100%;
+				padding: 15px;
+				z-index:100;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="info">
+			<a href="http://threejs.org" target="_blank">three.js</a> - Loader molecule from .XYZ
+		</div>
+
+		<script src="../build/three.min.js"></script>
+		<script src="js/controls/OrbitControls.js"></script>
+		<script src="js/loaders/XYZLoader.js"></script>
+
+		<script>
+
+
+			var camera, scene, renderer, control, light;
+
+			init();
+			animate();
+
+			function init() {
+
+				renderer = new THREE.WebGLRenderer( { antialias: true } ); 
+				renderer.setClearColor( 0xFFFFFF );
+				renderer.setSize( window.innerWidth, window.innerHeight );				
+				document.body.appendChild( renderer.domElement );
+
+				//
+
+				camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 500 );				
+				camera.position.set( 0, 0, 10 );
+
+				control = new THREE.OrbitControls( camera, renderer.domElement );
+				control.rotateSpeed = 1;
+				control.noZoom = false;
+				control.zoomSpeed = 1.2;
+				control.staticMoving = true;
+				control.autoRotate = true;
+
+				scene = new THREE.Scene();
+
+				light = new THREE.DirectionalLight( 0xffffff, 1 );
+				light.position.set( 0, 0, 100 );
+				scene.add( light );
+
+
+				// world
+				var loader = new XYZLoader();
+				var molecule = loader.load( 'XYZ/ethanol.xyz' );
+				scene.add( molecule );
+
+			}
+
+
+			function animate() {
+
+					requestAnimationFrame(animate);
+					render();
+
+			}
+
+
+			function render() {
+
+					light.position.copy(camera.position);
+					control.update();
+					renderer.render(scene, camera);
+
+			}
+
+		</script>
+
+	</body>
+</html>

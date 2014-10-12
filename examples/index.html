@@ -103,6 +103,7 @@
 		var files = {
 			"geometry": [
 				"webgl_geometry_lathe",
+				"webgl_geometry_ArrowHelper",
 			],
 			"modifiers": [
 				"webgl_modifier_dent",
@@ -110,12 +111,15 @@
 				"webgl_modifier_shear",
 				"webgl_simple_modifiers",
 			],
+			"loaders": [
+				"loader_molecule_xyz",
+			],
 			"misc": [
-				"misc_controls_displace",
+				"misc_controls_object",
 			],
 			"games": [
-				"canvas_ascii_effect"
-			]
+				"games/labirint/index",
+			],			
 		};
 
 		//
@@ -166,9 +170,10 @@
 
 				( function ( file ) {
 
-					var name = file.split( '_' );
-					name.shift();
-					name = name.join( ' / ' );
+					//var name = file.split( '_' );
+					var name = file;
+					//name.shift();
+					//name = name.join( ' / ' );
 
 					var div = document.createElement( 'div' );
 					div.className = 'link';
@@ -199,8 +204,8 @@
 			viewer.focus();
 
 			button.style.display = '';
-
 			selected = file;
+
 
 		};
 

@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - geometry LatheGeometry </title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<meta name="author" content="Vildanov Almaz">	
+		<style>
+			body {
+				color: #000;
+				font-family:Monospace;
+				font-size:13px;
+				text-align:center;
+				font-weight: bold;
+
+				background-color: #fff;
+				margin: 0px;
+				overflow: hidden;
+			}
+
+			#info {
+				color:#000;
+				position: absolute;
+				top: 0px; width: 100%;
+				padding: 5px;
+
+			}
+
+			a {
+				color: red;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="container"></div>
+		<div id="info">
+			<a href="http://threejs.org" target="_blank">three.js</a> - geometry Lathe
+		</div>
+
+		<script src="../build/three.min.js"></script>
+		
+		<script src="js/Mirror.js"></script>
+		<script src="js/controls/OrbitControls.js"></script>
+
+		<script src="js/Detector.js"></script>
+		<script src="js/libs/stats.min.js"></script>
+		
+		<script>
+
+/**
+ * @author WestLangley / http://github.com/WestLangley
+ * @author zz85 / http://github.com/zz85
+ * @author bhouston / http://exocortex.com
+ *
+ * Creates an arrow for visualizing directions
+ *
+ * Parameters:
+ *  dir - Vector3
+ *  origin - Vector3
+ *  length - Number
+ *  material - Material ( LineBasicMaterial or LineDashedMaterial )
+ *  headLength - Number
+ *  headWidth - Number
+ */
+
+THREE.ArrowHelper = ( function () {
+
+	return function ( dir, origin, length, material, headLength, headWidth ) {
+
+		if ( !isNaN( parseInt( material ) ) ) {
+			material = new THREE.LineBasicMaterial( { color: 0xffff00 } );
+			console.log( 'Please, for ArrowHelper use a LineBasicMaterial or LineDashedMaterial instead of the HEX' ); 
+		}
+		if ( material === undefined ) material = new THREE.LineBasicMaterial( { color: 0xffff00 } );
+		if ( length === undefined ) { this.length = 1 } else { this.length = length; }
+		if ( headLength === undefined ) headLength = 0.2 * this.length;
+		if ( headWidth === undefined ) headWidth = 0.2 * headLength;
+
+		var lineGeometry = new THREE.Geometry();
+		lineGeometry.vertices.push( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, this.length, 0 ) );
+		lineGeometry.computeLineDistances();
+
+		var coneGeometry = new THREE.CylinderGeometry( 0, 0.5, 1, 5, 1 );
+		coneGeometry.applyMatrix( new THREE.Matrix4().makeTranslation( 0, - 0.5, 0 ) );
+
+		// dir is assumed to be normalized
+
+		THREE.Object3D.call( this );
+
+		this.position.copy( origin );
+
+		this.line = new THREE.Line( lineGeometry, material );
+		this.line.matrixAutoUpdate = false;
+		this.add( this.line );
+
+		this.cone = new THREE.Mesh( coneGeometry, new THREE.MeshBasicMaterial( { color: material.color } ) );
+		this.cone.matrixAutoUpdate = false;
+		this.add( this.cone );
+
+		this.setDirection( dir );
+		this.setLength( this.length, headLength, headWidth );
+
+	}
+
+}() );
+
+THREE.ArrowHelper.prototype = Object.create( THREE.Object3D.prototype );
+
+THREE.ArrowHelper.prototype.setDirection = ( function () {
+
+	var axis = new THREE.Vector3();
+	var radians;
+
+	return function ( dir ) {
+
+		// dir is assumed to be normalized
+
+		if ( dir.y > 0.99999 ) {
+
+			this.quaternion.set( 0, 0, 0, 1 );
+
+		} else if ( dir.y < - 0.99999 ) {
+
+			this.quaternion.set( 1, 0, 0, 0 );
+
+		} else {
+
+			axis.set( dir.z, 0, - dir.x ).normalize();
+
+			radians = Math.acos( dir.y );
+
+			this.quaternion.setFromAxisAngle( axis, radians );
+
+		}
+
+	};
+
+}() );
+
+THREE.ArrowHelper.prototype.setLength = function ( length, headLength, headWidth ) {
+
+	if ( headLength === undefined ) headLength = 0.2 * length;
+	if ( headWidth === undefined ) headWidth = 0.2 * headLength;
+
+	this.line.scale.set( 1, length / this.length, 1 );
+	this.line.updateMatrix();
+
+	this.cone.scale.set( headWidth, headLength, headWidth );
+	this.cone.position.y = length;
+	this.cone.updateMatrix();
+
+};
+
+THREE.ArrowHelper.prototype.setColor = function ( color ) {
+
+	this.line.material.color.set( color );
+	this.cone.material.color.set( color );
+
+};
+
+
+
+			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+
+			var container, stats;
+
+			var camera, controls, scene, renderer;
+			var light1;
+			var CircleMirror;
+			
+			init();
+			animate();
+
+			function init() {
+
+				// camera		
+				AddCamera( 0, 0, 800 ); 		
+
+				scene = new THREE.Scene();
+
+				// lights
+
+				light = new THREE.DirectionalLight( 0xffffff, 1 / 2 );
+				light.position.set( 0, 300, 500 );
+				scene.add( light );
+				
+				light = new THREE.DirectionalLight( 0xffffff, 1 / 2 );
+				light.position.set( 0, -300, 500 );
+				scene.add( light );				
+
+				// renderer
+
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setClearColor( 0xFFFFFF );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+				container = document.getElementById( 'container' );
+				container.appendChild( renderer.domElement );
+
+				stats = new Stats();
+				stats.domElement.style.position = 'absolute';
+				stats.domElement.style.top = '0px';
+				stats.domElement.style.zIndex = 100;
+				container.appendChild( stats.domElement );
+
+				//
+
+				window.addEventListener( 'resize', onWindowResize, false );
+	
+				// world
+
+				var dir = new THREE.Vector3( 1, 0, 0 );
+				var origin = new THREE.Vector3( 0, 0, 0 );
+				var length = 100;
+	
+				var material = new THREE.LineBasicMaterial( { color: 0xcc0000 } );
+
+				var arrowHelper = new THREE.ArrowHelper( dir, origin, length, material );
+				arrowHelper.setLength( 150 ); 
+				scene.add( arrowHelper );	
+	
+	
+				var dir = new THREE.Vector3( 1, 0, 0 );
+				var origin = new THREE.Vector3( 0, 0, 0 );
+				var length = 100;
+	
+				var material = new THREE.LineDashedMaterial( { color: 0xcc0000, dashSize: 4, gapSize: 2 } );
+
+				var arrowHelper = new THREE.ArrowHelper( dir, origin, length, material );
+				arrowHelper.setLength( 150 ); 
+				arrowHelper.setColor( 0x0000FF );
+				arrowHelper.setDirection( new THREE.Vector3( 1, 1, 1 ).normalize() );
+				scene.add( arrowHelper );
+	
+				var dir = new THREE.Vector3( 1, 0, 0 );
+				var origin = new THREE.Vector3( 0, 0, 0 );
+				var length = 100;	
+				var hex = 0xffff00;
+	
+				var arrowHelper = new THREE.ArrowHelper( dir, origin, length, hex );
+	
+				arrowHelper.setLength( 150 ); 
+				arrowHelper.setLength( 250 );
+				arrowHelper.setLength( 50 );
+				arrowHelper.setLength( 150 );
+		
+				arrowHelper.setColor( 0x0000FF );
+				arrowHelper.setDirection( new THREE.Vector3( -1, 1, 1 ).normalize() );
+				scene.add( arrowHelper );
+
+			}
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			function animate() {
+
+					requestAnimationFrame(animate);
+					render();
+
+			}
+
+
+			function render() {
+
+					stats.update();
+					controls.update();
+					renderer.render(scene, camera);
+
+			}
+
+			function AddCamera( X, Y, Z ) {
+
+				camera = new THREE.PerspectiveCamera( 24, window.innerWidth / window.innerHeight, 1, 10000 );
+
+				camera.position.set(X,Y,Z);
+
+				controls = new THREE.OrbitControls( camera, container );
+
+				controls.rotateSpeed = 1;
+				controls.noZoom = false;
+				controls.zoomSpeed = 1.2;
+				controls.staticMoving = true;
+
+			}
+
+		</script>
+
+	</body>
+</html>
