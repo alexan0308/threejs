@@ -27,13 +27,17 @@
 		</div>
 
 		<script src="../build/three.min.js"></script>
+
+		<script src="js/libs/stats.min.js"></script>
+
 		<script src="js/controls/OrbitControls.js"></script>		
 		<script src="js/controls/ObjectControls.js"></script>
 
 		<script>
 
 
-			var camera, scene, renderer, control; var model;
+			var camera, scene, renderer, control; 
+			var model;
 
 			init();
 			animate();
@@ -53,6 +57,14 @@
 				//renderer.setSize( 800, 500 );
 				renderer.setSize( window.innerWidth, window.innerHeight );				
 				document.body.appendChild( renderer.domElement );
+
+				//
+
+				stats = new Stats();
+				stats.domElement.style.position = 'absolute';
+				stats.domElement.style.top = '0px';
+				stats.domElement.style.zIndex = 100;
+				document.body.appendChild( stats.domElement );
 
 				//
 
@@ -233,6 +245,7 @@
 				ObjectControl4.onclick = function() {
 					this.focused.position.y = -10; 
 					DHTMLSound( 'snd/' + String( this.item ) + '.mp3', 'sound' + String( this.item ), ' ' );
+					console.log( 'the key at number ' + this.item + ' is pressed' );				
 				}
 
 				var geometry = new THREE.BoxGeometry( 20, 20, 80 );
@@ -378,7 +391,7 @@
 						
 					}
 
-
+					stats.update();
 
 					ObjectControl1.update();
 					ObjectControl2.update();
