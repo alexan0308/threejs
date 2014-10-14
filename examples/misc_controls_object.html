@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>three.js webgl - displace controls</title>
+		<title>three.js webgl - objects controls</title>
 		<meta charset="utf-8">
 		<style>
 			body {
@@ -36,7 +36,7 @@
 		<script>
 
 
-			var camera, scene, renderer, control; 
+			var camera, scene, renderer, controls; 
 			var model;
 
 			init();
@@ -73,13 +73,13 @@
 				camera.position.set( 100, 400, 600 );
 				camera.lookAt( new THREE.Vector3( 0, 0, 0 ) );
 
-				control = new THREE.OrbitControls( camera, renderer.domElement );
-				control.rotateSpeed = 1;
-				control.noZoom = false;
-				control.zoomSpeed = 1.2;
-				control.staticMoving = true;
-				control.minPolarAngle = Math.PI / 3;
-				control.maxPolarAngle = Math.PI / 3;
+				controls = new THREE.OrbitControls( camera, renderer.domElement );
+				controls.rotateSpeed = 1;
+				controls.noZoom = false;
+				controls.zoomSpeed = 1.2;
+				controls.staticMoving = true;
+				controls.minPolarAngle = Math.PI / 3;
+				controls.maxPolarAngle = Math.PI / 3;
 
 				scene = new THREE.Scene();
 
@@ -106,8 +106,8 @@
 				scene.add( checkerboard );
 
 
-				ObjectControl1 = new ObjectControls( camera, renderer.domElement );
-				ObjectControl1.projectionMap = checkerboard; ObjectControl1.fixed.y = true;				
+				ObjectControls1 = new ObjectControls( camera, renderer.domElement );
+				ObjectControls1.projectionMap = checkerboard; ObjectControls1.fixed.y = true;				
 					
 				var radius = 20, h = 16, segments = 36;
 				var geometry = new THREE.CylinderGeometry( radius, radius, h, segments );
@@ -116,12 +116,12 @@
 				var checker = new THREE.Mesh( geometry, material );
 
 				checker.position.set( -175, h / 2, 175 );
-				scene.add( checker ); ObjectControl1.attach( checker );
+				scene.add( checker ); ObjectControls1.attach( checker );
 
 				var checker = new THREE.Mesh( geometry, material );
 
 				checker.position.set( -75, h / 2, 175 );
-				scene.add( checker ); ObjectControl1.attach( checker );
+				scene.add( checker ); ObjectControls1.attach( checker );
 				
 				var object3D = new THREE.Object3D;
 				var mesh = new THREE.Mesh( geometry, material );
@@ -130,12 +130,12 @@
 				mesh.position.y = h; mesh.rotation.x = Math.PI / 2; mesh.rotation.z = Math.PI / 2;
 				object3D.add( mesh );
 				object3D.position.set( 25, h / 2, 175 );				
-				scene.add( object3D );  ObjectControl1.attach( object3D );				
+				scene.add( object3D );  ObjectControls1.attach( object3D );				
 
 
-				ObjectControl2 = new ObjectControls( camera, renderer.domElement );
-				ObjectControl2.projectionMap = checkerboard; ObjectControl2.fixed.y = true;
-				ObjectControl2.move = function() {
+				ObjectControls2 = new ObjectControls( camera, renderer.domElement );
+				ObjectControls2.projectionMap = checkerboard; ObjectControls2.fixed.y = true;
+				ObjectControls2.mouseMove = function() {
 				
 					this.container.style.cursor = 'move'
 					this.focused.position.x = 25 + 50 * Math.round( ( this.focused.position.x - 25 ) / 50 );
@@ -143,7 +143,7 @@
 
 				}
 
-				ObjectControl2.mouseup = function() {
+				ObjectControls2.mouseUp = function() {
 
 					var x = ( this.focused.position.x - 25 ) / 50;
 					var z = ( this.focused.position.z - 25 ) / 50;
@@ -154,14 +154,7 @@
 
 				}
 
-				ObjectControl2.onclick = function() {
 
-					console.log( this.focused.name );
-					if ( this.focusedpart != null ) console.log( this.focusedpart.name )
-						else  console.log( 'this.focusedpart is null' );				
-
-				}
-					
 				var radius = 20, h = 16, segments = 36;
 				var geometry = new THREE.CylinderGeometry( radius, radius, h, segments );
 				var material = new THREE.MeshPhongMaterial( { color: 0x9B2D30 } );
@@ -169,7 +162,7 @@
 				var checker = new THREE.Mesh( geometry, material ); checker.name = 'checker';
 
 				checker.position.set( -125, h / 2, 125 );
-				scene.add( checker ); ObjectControl2.attach( checker );
+				scene.add( checker ); ObjectControls2.attach( checker );
 
 				
 				var object3D = new THREE.Object3D; object3D.name = 'two checkers';
@@ -179,12 +172,7 @@
 				mesh.position.y = h; mesh.rotation.x = Math.PI / 2; mesh.rotation.z = Math.PI / 2;
 				object3D.add( mesh );  mesh.name = 'top checker';
 				object3D.position.set( -25, h / 2, 125 );				
-				scene.add( object3D );  ObjectControl2.attach( object3D );
-
-				var man = createSnowman(); 
-				ObjectControl2.attach( man );
-				man.position.set( 75, 0, 125 );
-				scene.add( man ); 		
+				scene.add( object3D );  ObjectControls2.attach( object3D );	
 
 
 				var jsonLoader = new THREE.JSONLoader();
@@ -192,20 +180,20 @@
 				
 				
 				
-				ObjectControl3 = new ObjectControls( camera, renderer.domElement );
-				ObjectControl3.projectionMap = checkerboard; ObjectControl3.fixed.y = true;
+				ObjectControls3 = new ObjectControls( camera, renderer.domElement );
+				ObjectControls3.projectionMap = checkerboard; ObjectControls3.fixed.y = true;
 
-				ObjectControl3.onclick = function() {
+				ObjectControls3.onclick = function() {
 
 					var mesh = new THREE.Mesh( this.focused.geometry.clone(), this.focused.material.clone() );
 					mesh.position.copy( this.focused.position );
 					mesh.material.transparent = true; mesh.material.opacity = 0.7;					
 					scene.add( mesh );
-					this.setfocus( mesh );
+					this.setFocus( mesh );
 
 				}
 
-				ObjectControl3.mouseup = function() {
+				ObjectControls3.mouseUp = function() {
 
 					this.focused.material.transparent = false;
 					this.container.style.cursor = 'auto';
@@ -219,7 +207,7 @@
 				var checker = new THREE.Mesh( geometry, material );
 
 				checker.position.set( -175, h / 2, 75 ); checker.scale.set( 1/2, 1/2, 1/2 );
-				scene.add( checker ); ObjectControl3.attach( checker );
+				scene.add( checker ); ObjectControls3.attach( checker );
 
 
 				// piano
@@ -229,23 +217,25 @@
 				var selMaterial = new THREE.MeshPhongMaterial( { color: 0x00d9ff } );
 
 
-				ObjectControl4 = new ObjectControls( camera, renderer.domElement );
-				ObjectControl4.displacing = false;
+				ObjectControls4 = new ObjectControls( camera, renderer.domElement );
+				ObjectControls4.displacing = false;
 				
-				ObjectControl4.mouseover = function () {
+				ObjectControls4.mouseOver = function () {
 					this.container.style.cursor = 'pointer';
-					this.mouseovered.material = selMaterial;
+					this.mouseOvered.material = selMaterial;
+					console.log( 'the key at number ' + this.mouseOveredItem + ' is select' );							
 				}
 
-				ObjectControl4.mouseout = function () {
+				ObjectControls4.mouseOut = function () {
 					this.container.style.cursor = 'auto';
-					this.mouseovered.material = autoMaterial;
+					this.mouseOvered.material = autoMaterial;						
 				}
 
-				ObjectControl4.onclick = function() {
+				ObjectControls4.onclick = function() {
 					this.focused.position.y = -10; 
-					DHTMLSound( 'snd/' + String( this.item ) + '.mp3', 'sound' + String( this.item ), ' ' );
-					console.log( 'the key at number ' + this.item + ' is pressed' );				
+					DHTMLSound( 'snd/' + String( this.focusedItem ) + '.mp3', 'sound' + String( this.focusedItem ), ' ' );
+					console.log('/--------------------/');
+					console.log( 'the key at number ' + this.focusedItem + ' is pressed' );				
 				}
 
 				var geometry = new THREE.BoxGeometry( 20, 20, 80 );
@@ -255,22 +245,97 @@
 					var object = new THREE.Mesh( geometry, autoMaterial	);
 					object.position.set( i * 40 - 140, 10, -250 );
 					scene.add( object );
-					ObjectControl4.attach( object );
+					ObjectControls4.attach( object );
 
 				}
 
 
-				ObjectControl5 = new ObjectControls( camera, renderer.domElement );
-				ObjectControl5.displacing = false; ObjectControl5.attach( checkerboard );
+				//
+
+
+				ObjectControls5 = new ObjectControls( camera, renderer.domElement );
+				ObjectControls5.displacing = false; ObjectControls5.attach( checkerboard );
 				
-				ObjectControl5.mouseover = function () {
-					control.enabled = false;
+				ObjectControls5.mouseOver = function () {
+					controls.enabled = false;
 				}
 
-				ObjectControl5.mouseout = function () {
-					control.enabled = true;
+				ObjectControls5.mouseOut = function () {
+					controls.enabled = true;
 				}
+
+
+				// Snowman
+
+
+				ObjectControls6 = new ObjectControls( camera, renderer.domElement );
+				ObjectControls6.displacing = false;
+
+				ObjectControls6.onclick = function() {
+
+					console.log('/--------------------/');
+					console.log( 'this.focused.name: ' + this.focused.name );
+					if ( this.focusedChild != null ) console.log( 'this.focusedChild.name: ' + this.focusedChild.name )
+						else  console.log( 'this.focusedChild is null' );
+						
+					console.log( 'this.focusedPoint: (' + this.focusedPoint.x + ', ' + this.focusedPoint.y + ', ' + this.focusedPoint.z + ')' );
+					console.log( 'this.focusedDistance: ' + this.focusedDistance );
+
+				}
+
+				var man = createSnowman(); 
+				man.position.set( 175, 0, 75 );
+				scene.add( man ); 
+
+				ObjectControls6.attach( man );
+
+
+
+				// Sphere
+
+/*
+
+				var geometry = new THREE.PlaneGeometry( 780, 540, 24 );
+				var material = new THREE.MeshLambertMaterial( { color: 0xFFCCFF, side: THREE.DoubleSide } );
+				Spheree = new THREE.Mesh( geometry, material );
+				Spheree.rotation.x =  Math.PI / 2;
+				//Spheree.position.x = -350;
+				Spheree.position.y = 20;
+				scene.add ( Spheree );
+
+				ObjectControls7 = new ObjectControls( camera, renderer.domElement );
+				ObjectControls7.projectionMap = Spheree; 
+
+				ObjectControls7.mouseOver = function () {
+					this.container.style.cursor = 'pointer';
+					//controls.enabled = false;
+				}
+
+				ObjectControls7.mouseOut = function () {
+					this.container.style.cursor = 'auto';				
+					//controls.enabled = true;
+				}
+
+				ObjectControls7.mouseMove = function() {
 				
+					this.container.style.cursor = 'move';
+					//this.focused.lookAt( this.intersectsMap[ 0 ].face.normal );
+					ObjectControls7.focused.position.set( 0, 0, 0 );
+
+					ObjectControls7.focused.position.copy( this.intersectsMap[ 0 ].point );
+
+				}
+
+				
+				var geometry = new THREE.CylinderGeometry( 0, 20, 100, 3 );
+				//geometry.applyMatrix( new THREE.Matrix4().makeTranslation( 0, 50, 0 ) );
+				//geometry.applyMatrix( new THREE.Matrix4().makeRotationX( Math.PI / 2 ) );
+				helper = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: 0xCCCCFF } ) );
+				helper.position.set( -250, 80, 0 );
+				scene.add( helper );
+			
+				ObjectControls7.attach( helper );			
+*/				
 			}
 
 			function addModelToScene( geometry, materials ) {
@@ -279,8 +344,8 @@
 				model = new THREE.Mesh( geometry, material );
 				model.scale.set( 10, 10, 10 ); model.name = 'Tux';
 				model.rotation.x = -Math.PI/2; 
-				model.position.set( 175, 45, 125 );
-				scene.add( model ); ObjectControl2.attach( model );
+				model.position.set( 75, 45, 125 );
+				scene.add( model ); ObjectControls2.attach( model );
 	
 			}
 
@@ -331,7 +396,7 @@
 					sphere5.position.set( 25, 78, 0 );	
 					Snowman.add( sphere5 ); sphere5.name = 'hand left';
 	
-					// нос
+					// РЅРѕСЃ
    
 					var	material = new THREE.MeshLambertMaterial( {color: 0xf36223} ); 
 					var geometry = new THREE.CylinderGeometry( 1, 4, 20, 16 ); 
@@ -340,7 +405,7 @@
 					nose.name = 'nose';
 					Snowman.add( nose ); 
 
-					// ведро
+					// РІРµРґСЂРѕ
    
 					var	material = new THREE.MeshLambertMaterial({color: 0x6600ff}); 
 					var geometry = new THREE.CylinderGeometry( 12, 17, 30, 24 ); 
@@ -348,7 +413,7 @@
 					bucket.position.set(0, 125, -6 );  bucket.rotation.x = -Math.PI/11;
 					Snowman.add( bucket ); bucket.name = 'bucket';
 
-					// глаза		
+					// РіР»Р°Р·Р°		
 					var	material = new THREE.MeshLambertMaterial({color: 0x000000}); 
 					var geometry = new THREE.SphereGeometry( 3, 25, 5 ); 
 					var eye1 = new THREE.Mesh( geometry, material);					
@@ -359,7 +424,7 @@
 					eye2.position.set( 8, 105, 13 ); eye2.name = 'eye2';
 					Snowman.add( eye2 );		
 
-					// рот
+					// СЂРѕС‚
 					var	material = new THREE.MeshBasicMaterial({color: 0x560319});
 					var geometry = new THREE.CircleGeometry( 5, 5, 0, Math.PI );
 					var mouth = new THREE.Mesh( geometry, material);
@@ -383,23 +448,25 @@
 
 			function render() {
 
-					for ( var i = 0; i < ObjectControl4.objects.length; i++ ) {
+					for ( var i = 0; i < ObjectControls4.objects.length; i++ ) {
 					
-						if ( ObjectControl4.objects[i].position.y < 10 ) {
-							ObjectControl4.objects[i].position.y += 1;
+						if ( ObjectControls4.objects[i].position.y < 10 ) {
+							ObjectControls4.objects[i].position.y += 1;
 						}
 						
 					}
 
 					stats.update();
 
-					ObjectControl1.update();
-					ObjectControl2.update();
-					ObjectControl3.update();
-					ObjectControl4.update();
-					ObjectControl5.update();
+					ObjectControls1.update();
+					ObjectControls2.update();
+					ObjectControls3.update();
+					ObjectControls4.update();
+					ObjectControls5.update();
+					ObjectControls6.update();
+					//ObjectControls7.update();
 
-					control.update();
+					controls.update();
 					renderer.render(scene, camera);
 
 			}

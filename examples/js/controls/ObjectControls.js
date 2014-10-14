@@ -12,35 +12,46 @@ ObjectControls = function ( camera, domElement ) {
 	this.fixed = new THREE.Vector3( 0, 0, 0 );
 	this.displacing = true;
 	
-	var _DisplaceFocused = null; // выделенный мэш
-	this.focused = null; // выделенный мэш
-	this.focusedpart = null; // выделенная часть 3D объекта	
-	var _DisplaceMouseOvered = null; // выделенный мэш	
-	this.mouseovered = null; // наведенный мэш
-	this.mouseoveredpart = null; // наведенная часть 3D объекта	
+	var _DisplaceFocused = null; // РІС‹РґРµР»РµРЅРЅС‹Р№ РѕР±СЉРµРєС‚
+	this.focused = null; // РІС‹РґРµР»РµРЅРЅС‹Р№ РѕР±СЉРµРєС‚
+	this.focusedChild = null; // РІС‹РґРµР»РµРЅРЅР°СЏ С‡Р°СЃС‚СЊ 3D РѕР±СЉРµРєС‚Р°	
+	var _DisplacemouseOvered = null; // РЅР°РІРµРґРµРЅРЅС‹Р№ РѕР±СЉРµРєС‚	
+	this.mouseOvered = null; // РЅР°РІРµРґРµРЅРЅС‹Р№ РѕР±СЉРµРєС‚
+	this.mouseOveredChild = null; // РЅР°РІРµРґРµРЅРЅР°СЏ С‡Р°СЃС‚СЊ 3D РѕР±СЉРµРєС‚Р°	
+	this.focusedItem = null;
+	this.mouseOveredItem = null;
+	this.focusedDistance = null;
+	this.mouseOveredDistance = null;
+	this.focusedPoint = null;
+	this.mouseOveredPoint = null;
 	
 	this.projectionMap = null;
+	this.projectionPoint = null;
+	
 	this._mouse = new THREE.Vector2();
 	this._projector = new THREE.Projector();
+	//this.clock = new THREE.Clock();
+	//this.period = 0.1; 
+	//this.clock.start();
 
 	// API
 
 	this.enabled = true;
-	this.item = null;
 
 	this.objects = [];
-	this._intersects = [];
-	this.intersectsMap;	
+	this.intersects = [];
+	this.intersectsMap = [];
+
 	this.previous = new THREE.Vector3( 0, 0, 0 );
 
 	this.update = function () { 
 		onContainerMouseMove();
 	}
 
-	this.move = function () { this.container.style.cursor = 'move' }
-	this.mouseover = function () { this.container.style.cursor = 'pointer' }
-	this.mouseout = function () { this.container.style.cursor = 'auto' }
-	this.mouseup = function () { this.container.style.cursor = 'auto' }
+	this.mouseMove = function () { this.container.style.cursor = 'move' }
+	this.mouseOver = function () { this.container.style.cursor = 'pointer' }
+	this.mouseOut = function () { this.container.style.cursor = 'auto' }
+	this.mouseUp = function () { this.container.style.cursor = 'auto' }
 	this.onclick = function () {}
 
 	this.returnPrevious = function() {
@@ -71,17 +82,17 @@ ObjectControls = function ( camera, domElement ) {
 
 	}
 
-	this.setfocus = function ( object ) {
+	this.setFocus = function ( object ) {
 
 		_DisplaceFocused = object;
-		_this.item = _this.objects.indexOf( object );		
+		_this.focusedItem = _this.objects.indexOf( object );		
 		if ( object.userData.parent ) { // console.log( ' select object3D ' );
 			this.focused = object.userData.parent;
-			this.focusedpart = _DisplaceFocused;
+			this.focusedChild = _DisplaceFocused;
 			this.previous.copy( this.focused.position );
 		}
 		else { //console.log( ' select mesh ' );
-			this.focused = object; this.focusedpart = null;
+			this.focused = object; this.focusedChild = null;
 			this.previous.copy( this.focused.position );
 		}
 
@@ -90,27 +101,29 @@ ObjectControls = function ( camera, domElement ) {
 	this._setFocusNull = function () {
 		_DisplaceFocused = null;
 		this.focused = null;
-		this.focusedpart = null;
-		this.item = null;
+		this.focusedChild = null;
+		this.focusedItem = null;
 	}
 	
 	this.select = function ( object ) {
 
-		_DisplaceMouseOvered = object;
+		_DisplacemouseOvered = object;
+		_this.mouseOveredItem = _this.objects.indexOf( object );			
 		if ( object.userData.parent ) { // console.log( ' select object3D ' );
-			this.mouseovered = object.userData.parent;
-			this.mouseoveredpart = _DisplaceMouseOvered;
+			this.mouseOvered = object.userData.parent;
+			this.mouseOveredChild = _DisplacemouseOvered;
 		}
 		else { //console.log( ' select mesh ' );
-			this.mouseovered = object; this.mouseoveredpart = null;
+			this.mouseOvered = object; this.mouseOveredChild = null;
 		}
 
 	}
 	
 	this._setSelectNull = function () {
-		_DisplaceMouseOvered = null;
-		this.mouseovered =  null;
-		this.mouseoveredpart = null;
+		_DisplacemouseOvered = null;
+		this.mouseOvered =  null;
+		this.mouseOveredChild = null;
+		this.mouseOveredItem = null;		
 	}
 
 	this._selGetPos = function( a ) {
@@ -143,11 +156,13 @@ ObjectControls = function ( camera, domElement ) {
 	function onContainerMouseDown( event ) {
 
 		var raycaster = _this._rayGet();
-		_this._intersects = raycaster.intersectObjects( _this.objects, true );
+		_this.intersects = raycaster.intersectObjects( _this.objects, true );
 
-		if ( _this._intersects.length > 0 ) {
+		if ( _this.intersects.length > 0 ) {
 
-			_this.setfocus( _this._intersects[ 0 ].object );
+			_this.setFocus( _this.intersects[ 0 ].object );
+			_this.focusedDistance = _this.intersects[ 0 ].distance;
+			_this.focusedPoint = _this.intersects[ 0 ].point;
 			_this.onclick();
 
 		}
@@ -158,6 +173,10 @@ ObjectControls = function ( camera, domElement ) {
 	}
 
 	function onContainerMouseMove() {
+	
+	//var time = _this.clock.getElapsedTime();
+	//if ( time > _this.period ) { 
+	//_this.clock.elapsedTime = 0;
 
 		var raycaster = _this._rayGet();
 
@@ -175,34 +194,38 @@ ObjectControls = function ( camera, domElement ) {
 			}
 			catch( err ) {}
 
-			_this.move(); _this._selGetPos( _this.focused.position );
+			_this.mouseMove(); _this._selGetPos( _this.focused.position );
 		}
 		}
 		else {
 
-			_this._intersects = raycaster.intersectObjects( _this.objects, true );
-			if ( _this._intersects.length > 0 ) {			
-				if ( _this.mouseovered ) {  // какая-то клавиша уже была наведена
-					if ( _DisplaceMouseOvered != _this._intersects[ 0 ].object ) {
-						_this.mouseout();
-						_this.select( _this._intersects[ 0 ].object );
-						_this.mouseover();
+			_this.intersects = raycaster.intersectObjects( _this.objects, true );
+			if ( _this.intersects.length > 0 ) {			
+				if ( _this.mouseOvered ) {  // РєР°РєР°СЏ-С‚Рѕ РєР»Р°РІРёС€Р° СѓР¶Рµ Р±С‹Р»Р° РЅР°РІРµРґРµРЅР°
+					if ( _DisplacemouseOvered != _this.intersects[ 0 ].object ) {
+						_this.mouseOut();
+						_this.select( _this.intersects[ 0 ].object );				
+						_this.mouseOveredDistance = _this.intersects[ 0 ].distance;
+						_this.mouseOveredPoint = _this.intersects[ 0 ].point;
+						_this.mouseOver();
 					}
-					else _this.mouseover();
+					//else _this.mouseOver();
 				}
 				else {
-					_this.select( _this._intersects[ 0 ].object );
-					_this.mouseover();
+					_this.select( _this.intersects[ 0 ].object );
+					_this.mouseOveredDistance = _this.intersects[ 0 ].distance;
+					_this.mouseOveredPoint = _this.intersects[ 0 ].point;					
+					_this.mouseOver();
 				}
 			}
 			else {
-				if ( _DisplaceMouseOvered ) { _this.mouseout(); _this._setSelectNull(); }
+				if ( _DisplacemouseOvered ) { _this.mouseOut(); _this._setSelectNull(); }
 			}
 
 		}
 
+	//}
 	}
-
 
 	function onContainerMouseUp( event ) {
 
@@ -210,7 +233,7 @@ ObjectControls = function ( camera, domElement ) {
 
 			if ( _this.focused ) {
 
-				_this.mouseup();
+				_this.mouseUp();
                 _DisplaceFocused = null;
 				_this.focused = null; 
 
@@ -218,9 +241,9 @@ ObjectControls = function ( camera, domElement ) {
 
 	}
 
-	this.container.addEventListener( 'mousedown', onContainerMouseDown, false );	// мышка нажата
-	this.container.addEventListener( 'mousemove', getMousePos, false );   // получение координат мыши
-	this.container.addEventListener( 'mouseup', onContainerMouseUp, false );       // мышка отпущена
+	this.container.addEventListener( 'mousedown', onContainerMouseDown, false );	// РјС‹С€РєР° РЅР°Р¶Р°С‚Р°
+	this.container.addEventListener( 'mousemove', getMousePos, false );   // РїРѕР»СѓС‡РµРЅРёРµ РєРѕРѕСЂРґРёРЅР°С‚ РјС‹С€Рё
+	this.container.addEventListener( 'mouseup', onContainerMouseUp, false );       // РјС‹С€РєР° РѕС‚РїСѓС‰РµРЅР°
 
 };
 
