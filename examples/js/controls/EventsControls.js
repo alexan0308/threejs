@@ -1,9 +1,9 @@
- /** This DisplaceControl will allow to facilitate development speed for simple manipulations by means of a mouse
+ /** This EventsControls will allow to facilitate development speed for simple manipulations by means of a mouse
  * - a clique, pointing, movement.
  * @author Vildanov Almaz / alvild@gmail.com
  */
 
-ObjectControls = function ( camera, domElement ) {
+EventsControls = function ( camera, domElement ) {
 
 	var _this = this;
 
@@ -39,6 +39,8 @@ ObjectControls = function ( camera, domElement ) {
 	this.enabled = true;
 
 	this.objects = [];
+	var _DisplaceIntersects = [];
+	var _DisplaceIntersectsMap = [];	
 	this.intersects = [];
 	this.intersectsMap = [];
 
@@ -139,6 +141,12 @@ ObjectControls = function ( camera, domElement ) {
 		return raycaster;
 
 	}
+	
+	this._setMap = function () {
+
+		_this.intersectsMap = _DisplaceIntersectsMap;
+
+	}
 
 	function getMousePos( event ) {
 
@@ -183,10 +191,10 @@ ObjectControls = function ( camera, domElement ) {
 		if ( _this.focused ) {
 		if ( _this.displacing ) {
 
-			_this.intersectsMap = raycaster.intersectObject( _this.projectionMap );
-
+			_DisplaceIntersectsMap = raycaster.intersectObject( _this.projectionMap );
+			_this._setMap();
 			try {
-				var pos = new THREE.Vector3().copy( _this.intersectsMap[ 0 ].point );				
+				var pos = new THREE.Vector3().copy( _DisplaceIntersectsMap[ 0 ].point );
 				if ( _this.fixed.x == 1 ) { pos.x = _this.previous.x };
 				if ( _this.fixed.y == 1 ) { pos.y = _this.previous.y };
 				if ( _this.fixed.z == 1 ) { pos.z = _this.previous.z };				
@@ -199,7 +207,8 @@ ObjectControls = function ( camera, domElement ) {
 		}
 		else {
 
-			_this.intersects = raycaster.intersectObjects( _this.objects, true );
+			_DisplaceIntersects = raycaster.intersectObjects( _this.objects, true );
+			_this.intersects = _DisplaceIntersects;
 			if ( _this.intersects.length > 0 ) {			
 				if ( _this.mouseOvered ) {  // какая-то клавиша уже была наведена
 					if ( _DisplacemouseOvered != _this.intersects[ 0 ].object ) {
@@ -247,4 +256,4 @@ ObjectControls = function ( camera, domElement ) {
 
 };
 
-//ObjectControls.prototype = Object.create( THREE.EventDispatcher.prototype );
+//EventsControls.prototype = Object.create( THREE.EventDispatcher.prototype );
