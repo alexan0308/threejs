@@ -19,12 +19,43 @@
 				padding: 15px;
 				z-index:100;
 			}
+			
+			#menu {
+				position: absolute;
+				bottom: 20px;
+				width: 100%;
+				text-align: center;
+				padding: 0;
+				margin: 0;
+			}
+
+			button {
+				color: rgb(255,255,255);
+				background: transparent;
+				border: 0px;
+				padding: 5px 10px;
+				cursor: pointer;
+			}
+			button:hover {
+				background-color: rgba(0,255,255,0.5);
+			}
+			button:active {
+				color: #000000;
+				background-color: rgba(0,255,255,1);
+			}
+
+			.label {
+				text-shadow: -1px 1px 1px rgb(0,0,0);
+				margin-left: 25px;
+			}			
+			
 		</style>
 	</head>
 	<body>
 		<div id="info">
 			<a href="http://threejs.org" target="_blank">three.js</a> - Loader molecule from .XYZ
 		</div>
+		<div id="menu"></div>
 
 		<script src="../build/three.min.js"></script>
 		<script src="js/controls/OrbitControls.js"></script>
@@ -35,20 +66,46 @@
 
 			var camera, scene, renderer, control, light;
 
+			var MOLECULES = {
+				"ethanol": "ethanol.xyz",
+				"ermer": "ermer.xyz",
+				"heme": "heme.xyz",
+				"pentane": "pentane.xyz",
+				"peptide": "peptide.xyz",
+				"retinoic": "retinoic.xyz",
+				"alkane": "alkane.xyz",
+				"arach": "arach.xyz",
+				"propane": "propane.xyz",
+				"sterol": "sterol.xyz",
+				"benzamidine": "benzamidine.xyz",
+				"benzene": "benzene.xyz",
+				"azulene": "azulene.xyz",
+				"cyclo ": "cyclo.xyz",
+				"ethylene": "ethylene.xyz",
+				"Buckminsterfullerene": "bucky.xyz",				
+				"naphthalene": "naphthalene.xyz",
+				"lactam": "lactam.xyz"			
+			};
+
+			var loader = new XYZLoader();
+			var molecule;
+
+
+
 			init();
 			animate();
 
 			function init() {
 
 				renderer = new THREE.WebGLRenderer( { antialias: true } ); 
-				renderer.setClearColor( 0xFFFFFF );
+				//renderer.setClearColor( 0xFFFFFF );
 				renderer.setSize( window.innerWidth, window.innerHeight );				
 				document.body.appendChild( renderer.domElement );
 
 				//
 
 				camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 500 );				
-				camera.position.set( 0, 0, 10 );
+				camera.position.set( 0, 0, 25 );
 
 				control = new THREE.OrbitControls( camera, renderer.domElement );
 				control.rotateSpeed = 1;
@@ -63,11 +120,57 @@
 				light.position.set( 0, 0, 100 );
 				scene.add( light );
 
+				createMenu();
 
 				// world
-				var loader = new XYZLoader();
-				var molecule = loader.load( 'XYZ/ethanol.xyz' );
+
+				molecule = loader.load( 'models/XYZ/ethanol.xyz' );
 				scene.add( molecule );
+
+			}
+
+			function createMenu() {
+
+				for ( var m in MOLECULES ) {
+
+					var button = document.createElement( 'button' );
+					button.innerHTML = m;
+					menu.appendChild( button );
+
+					var url = "models/XYZ/" +  MOLECULES[ m ];
+
+					button.addEventListener( 'click', generateButtonCallback( url ), false );
+
+				}
+
+			}
+
+			function generateButtonCallback( url ) {
+
+				return function ( event ) {
+
+					while( molecule.children.length > 0 ) {
+
+						var object = molecule.children[ 0 ]; 
+						object.parent.remove( object );
+
+					}
+
+					scene.remove( molecule );
+
+					molecule = loader.load( url );
+					var helper = new THREE.BoundingBoxHelper( molecule, 0xfffff0 ); helper.update();
+					helper.visible = false; 
+					scene.add( helper );
+					var dx = molecule.position.x - helper.position.x;
+					var dy = molecule.position.y - helper.position.y;			
+					var dz = molecule.position.z - helper.position.z;						
+
+					molecule.position.set( dx, dy, dz );
+					scene.remove( helper );
+					scene.add( molecule ); 
+
+				}
 
 			}
 

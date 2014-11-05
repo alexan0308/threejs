@@ -20,6 +20,8 @@ XYZLoader = function () {
 	// Based on CanvasMol PDB parser
 
 	this.parseXYZ = function ( url ) {
+	
+	    atoms = [], materials = [], geometries = [], arr = [];
 
 		var sssr = this.file_get_contents( url );
 		var info = sssr.split(/\n/);
@@ -35,9 +37,9 @@ XYZLoader = function () {
 		// например
 		//0 - водород 1 - кислород  2 - углерод
 		// название, цвет молекулы и ее размер в ангстремах
-		//atoms['H'] = [ 0, 0x2a52be, 0.53]; 
-		//atoms['O'] = [ 1, 0xff0000, 0.60];
-		//atoms['C'] = [ 2, 0x00ff12, 0.91];
+		//atoms['H'] = [ 0, Math.random() * 0xFFFFFF, 0.53]; 
+		//atoms['O'] = [ 1, Math.random() * 0xFFFFFF, 0.60];
+		//atoms['C'] = [ 2, Math.random() * 0xFFFFFF, 0.91];
 
 		var allAtomSymbol = '';
 		var number = 0;
@@ -46,7 +48,7 @@ XYZLoader = function () {
 			var pos = allAtomSymbol.indexOf('#' + AtomSymbol + '#'); //console.log( allAtomSymbol + '_' + AtomSymbol + '_' + pos);
 			if (pos < 0) {
 				allAtomSymbol = allAtomSymbol + '#' + AtomSymbol + '#';
-				if ( atoms[AtomSymbol] == undefined ) atoms[AtomSymbol] = [ number, Math.random() * 0xFFFFFF, 0.7 ];
+				if ( atoms[AtomSymbol] == undefined ) atoms[AtomSymbol] = [ number, Math.random() * 0xFFFFFF, 0.6 ];
 				number++;
 			}
 		}
@@ -64,7 +66,7 @@ XYZLoader = function () {
 				depthTest: true
 			});
 			materials.push(material);
-			var geometry = new THREE.SphereGeometry(atoms[Name][2] * this.k, 16, 16); // геометрия сферы
+			var geometry = new THREE.SphereGeometry( atoms[Name][2] * this.k, 32, 32 ); // геометрия сферы
 			geometries.push(geometry);
 		}
 
@@ -97,7 +99,7 @@ XYZLoader = function () {
 
 				var fingerLength = this.cylinderMesh(new THREE.Vector3(x1, y1, z1), new THREE.Vector3(x2, y2, z2));
 				fingerLength.material = materials[atoms[arr[i][1]][0]];
-				this.molecule.add(fingerLength);
+				this.molecule.add( fingerLength );
 
 			}
 		}
@@ -142,7 +144,7 @@ XYZLoader = function () {
 		}));
 		edgeMesh.position.copy(new THREE.Vector3().addVectors(pointX, direction.multiplyScalar(0.5)));
 
-		edgeMesh.setRotationFromEuler(arrow.rotation);
+		edgeMesh.setRotationFromEuler(arrow.rotation); arrow.remove();
 		return edgeMesh;
 	}
 
