@@ -87,7 +87,7 @@ PrismGeometry.prototype = Object.create( THREE.ExtrudeGeometry.prototype );
 			function init() {
 
 				// camera		
-				AddCamera( 0, 300, 400 ); 		
+				AddCamera( 200, 300, 400 ); 		
 
 				scene = new THREE.Scene();
 
@@ -152,6 +152,16 @@ PrismGeometry.prototype = Object.create( THREE.ExtrudeGeometry.prototype );
 	prism2.position.set( 100, 0, 0 );
 	prism2.rotation.x = -Math.PI / 2;
 	scene.add( prism2 );	
+
+	
+	var height = 48;				   
+	var geometry = new PrismGeometry( 
+		[ new THREE.Vector3(-10,  15, 9.5), new THREE.Vector3(-10, -15, 9.5), new THREE.Vector3( 10, -15, 9.5) ], height ); 
+	var material = new THREE.MeshPhongMaterial( { color: 0x00b2fc, specular: 0x00ffff, shininess: 20, transparent: true, opacity: 0.7 } );		
+	var prism = new THREE.Mesh( geometry, material );
+	prism.position.set( -50, 0, 0 );
+	scene.add( prism );
+
 	
 			}
 
