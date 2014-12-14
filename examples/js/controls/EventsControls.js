@@ -24,7 +24,8 @@ EventsControls = function ( camera, domElement ) {
 	this.mouseOveredDistance = null;
 	this.focusedPoint = null;
 	this.mouseOveredPoint = null;
-	
+	this.raycaster = new THREE.Raycaster();
+
 	this.projectionMap = null;
 	this.projectionPoint = null;
 	
@@ -135,11 +136,24 @@ EventsControls = function ( camera, domElement ) {
 
 	this._rayGet = function () {
 
-		var vector = new THREE.Vector3( _this._mouse.x, _this._mouse.y, 0.5 );
-		//this._projector.unprojectVector( vector, camera ); 
-		vector.unproject( this.camera );
-		var raycaster = new THREE.Raycaster( this.camera.position, vector.sub( this.camera.position ).normalize() );
-		return raycaster;
+		if ( _this.camera instanceof THREE.OrthographicCamera ) {
+
+			var vector = new THREE.Vector3( _this._mouse.x, _this._mouse.y, - 1 ).unproject( this.camera );
+			var direction = new THREE.Vector3( 0, 0, -1 ).transformDirection( this.camera.matrixWorld );
+			_this.raycaster.set( vector, direction );
+
+		}
+		else {
+
+			var vector = new THREE.Vector3( _this._mouse.x, _this._mouse.y, 0.5 );
+			//_this._projector.unprojectVector( vector, camera ); 
+			vector.unproject( _this.camera );
+			//	_this.raycaster = new THREE.Raycaster( _this.camera.position, vector.sub( _this.camera.position ).normalize() );
+			_this.raycaster.set( _this.camera.position, vector.sub( _this.camera.position ).normalize() );		
+
+		}
+
+		//return _this.raycaster;
 
 	}
 	
@@ -164,8 +178,9 @@ EventsControls = function ( camera, domElement ) {
 
 	function onContainerMouseDown( event ) {
 
-		var raycaster = _this._rayGet();
-		_this.intersects = raycaster.intersectObjects( _this.objects, true );
+		//var raycaster = 
+		_this._rayGet();
+		_this.intersects = _this.raycaster.intersectObjects( _this.objects, true );
 
 		if ( _this.intersects.length > 0 ) {
 
@@ -187,12 +202,13 @@ EventsControls = function ( camera, domElement ) {
 	//if ( time > _this.period ) { 
 	//_this.clock.elapsedTime = 0;
 
-		var raycaster = _this._rayGet();
+		//var raycaster = 
+		_this._rayGet();
 
 		if ( _this.focused ) {
 		if ( _this.displacing ) {
 
-			_DisplaceIntersectsMap = raycaster.intersectObject( _this.projectionMap );
+			_DisplaceIntersectsMap = _this.raycaster.intersectObject( _this.projectionMap );
 			_this._setMap();
 			try {
 				var pos = new THREE.Vector3().copy( _DisplaceIntersectsMap[ 0 ].point );
@@ -208,7 +224,7 @@ EventsControls = function ( camera, domElement ) {
 		}
 		else {
 
-			_DisplaceIntersects = raycaster.intersectObjects( _this.objects, true );
+			_DisplaceIntersects = _this.raycaster.intersectObjects( _this.objects, true );
 			_this.intersects = _DisplaceIntersects;
 			if ( _this.intersects.length > 0 ) {			
 				if ( _this.mouseOvered ) {  // какая-то клавиша уже была наведена
