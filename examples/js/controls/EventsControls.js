@@ -29,7 +29,7 @@ EventsControls = function ( camera, domElement ) {
 	this.projectionPoint = null;
 	
 	this._mouse = new THREE.Vector2();
-	this._projector = new THREE.Projector();
+	//this._projector = new THREE.Projector();
 	//this.clock = new THREE.Clock();
 	//this.period = 0.1; 
 	//this.clock.start();
@@ -136,7 +136,8 @@ EventsControls = function ( camera, domElement ) {
 	this._rayGet = function () {
 
 		var vector = new THREE.Vector3( _this._mouse.x, _this._mouse.y, 0.5 );
-		this._projector.unprojectVector( vector, camera ); //vector.unprojectVector( this.camera );
+		//this._projector.unprojectVector( vector, camera ); 
+		vector.unproject( this.camera );
 		var raycaster = new THREE.Raycaster( this.camera.position, vector.sub( this.camera.position ).normalize() );
 		return raycaster;
 
