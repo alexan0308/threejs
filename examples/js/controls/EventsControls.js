@@ -145,7 +145,7 @@ EventsControls = function ( camera, domElement ) {
 		}
 		else {
 
-			var vector = new THREE.Vector3( _this._mouse.x, _this._mouse.y, 0.5 );
+			var vector = new THREE.Vector3( _this._mouse.x, _this._mouse.y, 1 );
 			//_this._projector.unprojectVector( vector, camera ); 
 			vector.unproject( _this.camera );
 			//	_this.raycaster = new THREE.Raycaster( _this.camera.position, vector.sub( _this.camera.position ).normalize() );
@@ -226,13 +226,13 @@ EventsControls = function ( camera, domElement ) {
 
 			_DisplaceIntersects = _this.raycaster.intersectObjects( _this.objects, true );
 			_this.intersects = _DisplaceIntersects;
-			if ( _this.intersects.length > 0 ) {			
-				if ( _this.mouseOvered ) {  // какая-то клавиша уже была наведена
+			if ( _this.intersects.length > 0 ) {	
+					_this.mouseOveredDistance = _this.intersects[ 0 ].distance;
+					_this.mouseOveredPoint = _this.intersects[ 0 ].point;			
+				if ( _this.mouseOvered ) {  // какая-то клавиша уже была наведена			
 					if ( _DisplacemouseOvered != _this.intersects[ 0 ].object ) {
 						_this.mouseOut();
 						_this.select( _this.intersects[ 0 ].object );				
-						_this.mouseOveredDistance = _this.intersects[ 0 ].distance;
-						_this.mouseOveredPoint = _this.intersects[ 0 ].point;
 						_this.mouseOver();
 					}
 					//else _this.mouseOver();
