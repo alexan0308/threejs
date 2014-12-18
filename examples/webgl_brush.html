@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - brush</title>
+		<meta charset="utf-8">
+		<style>
+			body {
+				margin: 0px;
+				color: #fff;
+				font-family:Monospace;
+				text-align: center;
+				font-size: 15px;
+				line-height: 30px;
+				overflow: hidden;
+			}
+			#info {
+				position: absolute;
+				top: 0px; width: 100%;
+				padding: 15px;
+				z-index:100;
+			}
+			#brush {
+				position: absolute; /* Относительное позиционирование */
+				height: 128px; /* Высота блока */   
+				width: 128px;
+				text-align:center;
+				background: url("textures/roller_brush.png") no-repeat;
+				display: table-cell; 
+				vertical-align: middle;
+				text-align:center;
+			}				
+
+		</style>
+	</head>
+	<body>
+		<span id="brush"> </span>
+		<div id="info">
+			<a href="http://threejs.org" target="_blank">three.js</a> - brush
+		</div>
+
+		<script src="../build/three.min.js"></script>
+
+		<script src="js/libs/stats.min.js"></script>
+
+		<script src="js/controls/OrbitControls.js"></script>		
+		<script src="js/Brush.js"></script>
+
+		<script>
+
+
+			var camera, scene, renderer, controls;
+			var objects = [];
+			var raycaster = new THREE.Raycaster();
+			var Brush;
+
+			init();
+			animate();
+
+			function init() {
+
+				renderer = new THREE.WebGLRenderer( { antialias: true } ); 
+				renderer.setClearColor( 0x0fffff );
+				//renderer.setSize( 800, 500 );
+				renderer.setSize( window.innerWidth, window.innerHeight );				
+				document.body.appendChild( renderer.domElement );
+
+				//
+
+				stats = new Stats();
+				stats.domElement.style.position = 'absolute';
+				stats.domElement.style.top = '0px';
+				stats.domElement.style.zIndex = 100;
+				document.body.appendChild( stats.domElement );
+
+				//
+
+				//camera = new THREE.PerspectiveCamera( 30, 800 / 500, 1, 2000 );
+				camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 2000 );				
+				camera.position.set( 100, 400, 600 );
+				camera.lookAt( new THREE.Vector3( 0, 0, 0 ) );
+
+				controls = new THREE.OrbitControls( camera, renderer.domElement );
+				controls.rotateSpeed = 1;
+				controls.noZoom = false;
+				controls.zoomSpeed = 1.2;
+				controls.staticMoving = true;
+				controls.minPolarAngle = Math.PI / 2.5;
+				controls.maxPolarAngle = Math.PI / 2.5;
+
+				scene = new THREE.Scene();
+
+				var light = new THREE.DirectionalLight( 0xffffff, 1 );
+				light.position.set( 0, 0, 1000 );
+				scene.add( light );
+
+				var light =  new THREE.HemisphereLight(0xffffff, 10);
+				light.position.set( 0, 0, 1000 );				
+				scene.add( light );
+
+				// world
+
+				var material = new THREE.MeshLambertMaterial( { vertexColors: THREE.FaceColors } );	
+
+				var geometry = new THREE.BoxGeometry( 100, 100, 100, 16, 16, 16 );
+
+				var Cube = new THREE.Mesh( geometry, material ); 
+				Cube.position.x = -300; 
+				scene.add( Cube );
+				objects.push( Cube );	
+
+
+				var colorRed = new THREE.Color( 0xff0000 );	
+				Brush = new THREE.Brush( colorRed, 10 );	
+				Brush.draw( Cube );
+
+
+				var material = new THREE.MeshLambertMaterial( { vertexColors: THREE.VertexColors } );			
+				var geometry = new THREE.BoxGeometry( 100, 100, 100, 16, 16, 16 );
+
+				var Cube = new THREE.Mesh( geometry, material ); 
+				Cube.position.x = -150; 
+				scene.add( Cube );
+				objects.push( Cube );
+
+				var colorDarkBlue = new THREE.Color( 0x00008B );
+				Brush.setColor( colorDarkBlue );
+				Brush.draw( Cube );
+
+				var colorGreen = new THREE.Color( 0x00ff00 );
+				Brush.setColor( colorGreen );
+				//Brush.setSize( 20 );
+				
+				
+				var geometry = new THREE.PlaneGeometry( 400, 200, 16, 16 );
+
+				var texture = THREE.ImageUtils.loadTexture( 'textures/zabor.jpg' );
+				texture.anisotropy = renderer.getMaxAnisotropy();
+
+				var material = new THREE.MeshBasicMaterial( { map: texture, side: THREE.DoubleSide, vertexColors: THREE.VertexColors } );
+
+				mesh = new THREE.Mesh( geometry, material );
+				mesh.position.x = 150; 				
+				scene.add( mesh );				
+				objects.push( mesh );				
+				
+				document.addEventListener( 'mousedown', onDocumentMouseDown, false );
+				document.addEventListener( 'mousemove', onDocumentMouseOver, false );
+			}
+
+			function onDocumentMouseDown( event ) {
+
+				var vector = new THREE.Vector3( ( event.clientX / window.innerWidth ) * 2 - 1, - ( event.clientY / window.innerHeight ) * 2 + 1, 0.5 );
+				vector.unproject( camera );
+				raycaster.set( camera.position, vector.sub( camera.position ).normalize() );
+
+				var intersects = raycaster.intersectObjects( objects );
+
+				if ( intersects.length > 0 ) {
+
+					Brush.draw( intersects[ 0 ].object, intersects[ 0 ].object.worldToLocal( intersects[ 0 ].point ) );
+
+				}	
+
+			}
+
+			function onDocumentMouseOver( event ) {
+				// update sprite position
+				//brushSprite.position.set( event.clientX, event.clientY, 0 );
+	
+				brush.style.left = event.clientX - 64 + 'px';
+				brush.style.top =  event.clientY - 40 + 'px';	
+	
+			}			
+
+			function animate() {
+
+				requestAnimationFrame(animate);
+				render();
+
+			}
+
+
+			function render() {
+
+				stats.update();
+
+				controls.update();
+				renderer.render(scene, camera);
+
+			}
+
+		</script>
+
+	</body>
+</html>
