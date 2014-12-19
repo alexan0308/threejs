@@ -23,11 +23,11 @@ THREE.Brush.prototype = {
 
     constructor: THREE.Brush,
 
-	draw: function ( mesh, point ) {
+	draw: function ( mesh, intersectedPoint, intersectedFace ) {
 
 		// faces are indexed using characters
 
-		if ( point == undefined ) {
+		if ( intersectedPoint == undefined ) {
 
 			for ( var f = 0, fl = mesh.geometry.faces.length; f < fl; f ++ ) {
 
@@ -42,40 +42,49 @@ THREE.Brush.prototype = {
 					}
 				}
 			}
+
 			mesh.geometry.colorsNeedUpdate = true;
 		}
 
 		else {
 
+			var sizeSquared =  this.size * this.size;
 			for ( var f = 0, fl = mesh.geometry.faces.length; f < fl; f ++ ) {
 
 				var face = mesh.geometry.faces[ f ];
 
-				if ( face instanceof THREE.Face3 ) {
+				scalarProduct = face.normal.dot( intersectedFace.normal );
+				//	console.log( scalarProduct );				
+				if ( scalarProduct <= 0 ) continue;
 
-					distanceA = point.distanceToSquared( mesh.geometry.vertices[ face.a ] );
-					distanceB = point.distanceToSquared( mesh.geometry.vertices[ face.b ] );				
-					distanceC = point.distanceToSquared( mesh.geometry.vertices[ face.c ] );
+				numberOfSides = ( face instanceof THREE.Face3 ) ? 3 : 4;
+				var flagDistance = false;
+				for ( var j = 0; j < numberOfSides; j++ ) {
+					vertexIndex = face[ this._faceIndices[ j ] ];
+					distance = intersectedPoint.distanceToSquared( mesh.geometry.vertices[ vertexIndex ] );
+					if ( distance < sizeSquared ) { flagDistance = true; continue;}
+				}
 
-					if ( distanceA < this.size * this.size || distanceB < this.size * this.size || distanceC < this.size * this.size  ) { 
-						face.color = this.color; 
-					
-						numberOfSides = ( face instanceof THREE.Face3 ) ? 3 : 4;
-							for( var j = 0; j < numberOfSides; j++ ) {
+				if ( face === intersectedFace ) { flagDistance = true; }				
+				if ( flagDistance ) {
+					if ( mesh.material.vertexColors == THREE.FaceColors) {
+						face.color = this.color; }
+
+					else {
+
+						if ( mesh.material.vertexColors == THREE.VertexColors) {
+							for ( var j = 0; j < numberOfSides; j++ ) {
 								vertexIndex = face[ this._faceIndices[ j ] ];
 								face.vertexColors[ j ] = this.color;
-								//console.log( f + ' ' + j );
-							}						
-					
-					} 
-					//console.log( 'face.a = ' + intersects[ 0 ].object.geometry.vertices[ face.a ].x );
-					//console.log( 'point.distanceToSquared( face.a ) = ' +  point.distanceToSquared( intersects[ 0 ].object.geometry.vertices[ face.a ] ) );
+								// console.log( f + ' ' + j );
+							}
+						}
+					}
+					mesh.geometry.colorsNeedUpdate = true;
 				}
 			}
-		
-			mesh.geometry.colorsNeedUpdate = true;		
 		}
-
+	
 	}
 
 }

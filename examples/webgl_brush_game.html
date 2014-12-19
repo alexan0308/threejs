@@ -119,7 +119,6 @@
 				var colorGreen = new THREE.Color( 0x00ff00 );
 				Brush.setColor( colorGreen );
 				//Brush.setSize( 20 );
-				document.addEventListener( 'mousedown', onDocumentMouseDown, false );
 
 				var geometry = new THREE.SphereGeometry( 30, 36, 36 );				
 				for ( var j = 0; j < count; j++ ) {
@@ -140,6 +139,12 @@
 				man.position.set( 70, -70, 0 );
 				scene.add( man );
 				
+				document.addEventListener( 'mousedown', onDocumentMouseDown, false );
+
+				//
+
+				window.addEventListener( 'resize', onWindowResize, false );
+
 			}
 
 			function onDocumentMouseDown( event ) {
@@ -270,6 +275,14 @@
 
 			}
 
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
 
 			function animate() {
 

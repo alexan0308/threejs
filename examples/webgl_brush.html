@@ -28,6 +28,7 @@
 				display: table-cell; 
 				vertical-align: middle;
 				text-align:center;
+				visibility: hidden;
 			}				
 
 		</style>
@@ -50,8 +51,10 @@
 
 			var camera, scene, renderer, controls;
 			var objects = [];
-			var raycaster = new THREE.Raycaster();
+			var mouse = new THREE.Vector2(), raycaster = new THREE.Raycaster();
 			var Brush;
+			var Fence;
+			brush.style.visibility = "hidden";
 
 			init();
 			animate();
@@ -60,7 +63,6 @@
 
 				renderer = new THREE.WebGLRenderer( { antialias: true } ); 
 				renderer.setClearColor( 0x0fffff );
-				//renderer.setSize( 800, 500 );
 				renderer.setSize( window.innerWidth, window.innerHeight );				
 				document.body.appendChild( renderer.domElement );
 
@@ -76,7 +78,7 @@
 
 				//camera = new THREE.PerspectiveCamera( 30, 800 / 500, 1, 2000 );
 				camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 2000 );				
-				camera.position.set( 100, 400, 600 );
+				camera.position.set( 100, 600, 800 );
 				camera.lookAt( new THREE.Vector3( 0, 0, 0 ) );
 
 				controls = new THREE.OrbitControls( camera, renderer.domElement );
@@ -128,23 +130,52 @@
 
 				var colorGreen = new THREE.Color( 0x00ff00 );
 				Brush.setColor( colorGreen );
-				//Brush.setSize( 20 );
 				
 				
-				var geometry = new THREE.PlaneGeometry( 400, 200, 16, 16 );
+				var geometry = new THREE.BoxGeometry( 400, 200, 20, 32, 16, 4 );
+				
+				var faceIndices = [ 'a', 'b', 'c', 'd' ];
+				var color, f, p, n, vertexIndex, radius = 800;
+				
+				for ( var i = 0; i < geometry.faces.length; i ++ ) {
 
-				var texture = THREE.ImageUtils.loadTexture( 'textures/zabor.jpg' );
+					f  = geometry.faces[ i ];
+					n = ( f instanceof THREE.Face3 ) ? 3 : 4;
+
+					for( var j = 0; j < n; j++ ) {
+
+						vertexIndex = f[ faceIndices[ j ] ];
+						p = geometry.vertices[ vertexIndex ];
+						color = new THREE.Color( 0xffffff );
+						color.setHSL( ( p.y / radius + 1 ) / 2, 1.0, 0.5 );
+						f.vertexColors[ j ] = color;
+
+					}
+
+				}
+				
+				
+				
+				var texture = THREE.ImageUtils.loadTexture( 'textures/doska2.jpg' );
+				texture.wrapS = THREE.RepeatWrapping;
+				texture.wrapT = THREE.RepeatWrapping;
+				texture.repeat.set( 8, 1 );				
+				
 				texture.anisotropy = renderer.getMaxAnisotropy();
 
 				var material = new THREE.MeshBasicMaterial( { map: texture, side: THREE.DoubleSide, vertexColors: THREE.VertexColors } );
 
-				mesh = new THREE.Mesh( geometry, material );
-				mesh.position.x = 150; 				
-				scene.add( mesh );				
-				objects.push( mesh );				
+				Fence = new THREE.Mesh( geometry, material );
+				Fence.position.x = 150; 				
+				scene.add( Fence );		
 				
-				document.addEventListener( 'mousedown', onDocumentMouseDown, false );
-				document.addEventListener( 'mousemove', onDocumentMouseOver, false );
+				renderer.domElement.addEventListener( 'mousemove', onDocumentMouseMove, false );
+				renderer.domElement.addEventListener( 'mousedown', onDocumentMouseDown, false );
+
+				//
+
+				window.addEventListener( 'resize', onWindowResize, false );
+
 			}
 
 			function onDocumentMouseDown( event ) {
@@ -156,21 +187,47 @@
 				var intersects = raycaster.intersectObjects( objects );
 
 				if ( intersects.length > 0 ) {
-
-					Brush.draw( intersects[ 0 ].object, intersects[ 0 ].object.worldToLocal( intersects[ 0 ].point ) );
+				
+					Brush.setSize( 10 );
+					Brush.draw( intersects[ 0 ].object, intersects[ 0 ].object.worldToLocal( intersects[ 0 ].point ), intersects[ 0 ].face );
 
 				}	
 
 			}
 
-			function onDocumentMouseOver( event ) {
-				// update sprite position
-				//brushSprite.position.set( event.clientX, event.clientY, 0 );
-	
-				brush.style.left = event.clientX - 64 + 'px';
-				brush.style.top =  event.clientY - 40 + 'px';	
-	
+			function onDocumentMouseMove( event ) {
+
+				event.preventDefault();
+
+				mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+				mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+				//
+
+				var vector = new THREE.Vector3( mouse.x, mouse.y, 0.5 ).unproject( camera );
+
+				raycaster.set( camera.position, vector.sub( camera.position ).normalize() );
+				var intersect = raycaster.intersectObject( Fence );
+				if ( intersect[0] != null ) {
+					brush.style.visibility = "visible";
+					brush.style.left = event.clientX - 64 + 'px';
+					brush.style.top =  event.clientY - 40 + 'px';					
+					Brush.setSize( 40 );
+					//console.log( ' intersect.point = ' + intersect[0].point ); 
+					Brush.draw( Fence, Fence.worldToLocal( intersect[ 0 ].point ), intersect[ 0 ].face );				
+				}
+				else brush.style.visibility = "hidden";
+
 			}			
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
 
 			function animate() {
 
