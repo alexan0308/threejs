@@ -17,8 +17,6 @@ XYZLoader = function () {
 		
 	},
 
-	// Based on CanvasMol PDB parser
-
 	this.parseXYZ = function ( url ) {
 	
 	    atoms = [], materials = [], geometries = [], arr = [];
@@ -46,7 +44,7 @@ XYZLoader = function () {
 		for (var i = 0; i < arr.length; i++) {
 			var AtomSymbol = String(arr[i][1]); //alert( AtomSymbol );
 			var pos = allAtomSymbol.indexOf('#' + AtomSymbol + '#'); //console.log( allAtomSymbol + '_' + AtomSymbol + '_' + pos);
-			if (pos < 0) {
+			if ( pos < 0 ) {
 				allAtomSymbol = allAtomSymbol + '#' + AtomSymbol + '#';
 				if ( atoms[AtomSymbol] == undefined ) atoms[AtomSymbol] = [ number, Math.random() * 0xFFFFFF, 0.6 ];
 				number++;
@@ -132,19 +130,17 @@ XYZLoader = function () {
 	// http://stemkoski.github.io/Three.js/LeapMotion.html
 	this.cylinderMesh = function( pointX, pointY ) {
 		// edge from X to Y
-		var direction = new THREE.Vector3().subVectors(pointY, pointX);
+		var direction = new THREE.Vector3().subVectors( pointY, pointX );
 
-		var arrow = new THREE.ArrowHelper(direction.clone().normalize(), pointX, direction.length());
+		var arrow = new THREE.ArrowHelper( direction.clone().normalize(), pointX, direction.length() );
 
 		// cylinder: radiusAtTop, radiusAtBottom, height, segmentsAroundRadius, segmentsAlongHeight
-		var edgeGeometry = new THREE.CylinderGeometry(0.1, 0.1, direction.length(), 16, 4);
+		var edgeGeometry = new THREE.CylinderGeometry( 0.1, 0.1, direction.length(), 16, 4 );
 
-		var edgeMesh = new THREE.Mesh(edgeGeometry, new THREE.MeshBasicMaterial({
-			color: 0x0000ff
-		}));
-		edgeMesh.position.copy(new THREE.Vector3().addVectors(pointX, direction.multiplyScalar(0.5)));
+		var edgeMesh = new THREE.Mesh( edgeGeometry );
+		edgeMesh.position.copy( new THREE.Vector3().addVectors( pointX, direction.multiplyScalar( 0.5 ) ) );
 
-		edgeMesh.setRotationFromEuler(arrow.rotation); arrow.remove();
+		edgeMesh.setRotationFromEuler( arrow.rotation ); arrow.remove();
 		return edgeMesh;
 	}
 

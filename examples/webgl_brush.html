@@ -135,7 +135,7 @@
 				var geometry = new THREE.BoxGeometry( 400, 200, 20, 32, 16, 4 );
 				
 				var faceIndices = [ 'a', 'b', 'c', 'd' ];
-				var color, f, p, n, vertexIndex, radius = 800;
+				var color, f, p, n, vertexIndex, radius = 600;
 				
 				for ( var i = 0; i < geometry.faces.length; i ++ ) {
 
@@ -148,7 +148,7 @@
 						p = geometry.vertices[ vertexIndex ];
 						color = new THREE.Color( 0xffffff );
 						color.setHSL( ( p.y / radius + 1 ) / 2, 1.0, 0.5 );
-						f.vertexColors[ j ] = color;
+						//f.vertexColors[ j ] = color;
 
 					}
 
@@ -168,6 +168,25 @@
 				Fence = new THREE.Mesh( geometry, material );
 				Fence.position.x = 150; 				
 				scene.add( Fence );		
+
+				//
+				
+				var Len = 100;
+				var geometry = new THREE.CylinderGeometry( 30, 30, 2 * Len, 16, 4 );
+				var material = new THREE.MeshPhongMaterial( { specular: 0x00b2fc, shininess: 12, blending: THREE.NormalBlending, depthTest: true, vertexColors: THREE.FaceColors } );					
+				var Cylinder = new THREE.Mesh( geometry, material );
+				
+				Brush.setColor( new THREE.Color( 0x483D8B ) );
+				Brush.setSize( Len );			
+				Brush.draw( Cylinder, new THREE.Vector3( 0, -Len, 0 ) );
+				
+				Brush.setColor( new THREE.Color( 0xB22222 ) );
+				Brush.setSize( Len );			
+				Brush.draw( Cylinder, new THREE.Vector3( 0, Len, 0 ) );
+				
+				Cylinder.position.set( -200, 150, 0 );
+				Cylinder.rotation.z = Math.PI/2;
+				scene.add( Cylinder );						
 				
 				renderer.domElement.addEventListener( 'mousemove', onDocumentMouseMove, false );
 				renderer.domElement.addEventListener( 'mousedown', onDocumentMouseDown, false );
@@ -189,7 +208,7 @@
 				if ( intersects.length > 0 ) {
 				
 					Brush.setSize( 10 );
-					Brush.draw( intersects[ 0 ].object, intersects[ 0 ].object.worldToLocal( intersects[ 0 ].point ), intersects[ 0 ].face );
+					Brush.draw( intersects[ 0 ].object, intersects[ 0 ].point );
 
 				}	
 
@@ -214,12 +233,12 @@
 					brush.style.top =  event.clientY - 40 + 'px';					
 					Brush.setSize( 40 );
 					//console.log( ' intersect.point = ' + intersect[0].point ); 
-					Brush.draw( Fence, Fence.worldToLocal( intersect[ 0 ].point ), intersect[ 0 ].face );				
+					Brush.draw( Fence, intersect[ 0 ].point );				
 				}
 				else brush.style.visibility = "hidden";
 
-			}			
-
+			}
+			
 			function onWindowResize() {
 
 				camera.aspect = window.innerWidth / window.innerHeight;

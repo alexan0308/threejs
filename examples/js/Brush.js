@@ -1,4 +1,7 @@
-
+/**
+ * @author Vildanov Almaz / alvild@gmail.com
+ */
+ 
 THREE.Brush = function ( color, size ) {
 
 	this.color = ( color !== undefined ) ? color : new THREE.Color( 0xffffff );
@@ -23,11 +26,11 @@ THREE.Brush.prototype = {
 
     constructor: THREE.Brush,
 
-	draw: function ( mesh, intersectedPoint, intersectedFace ) {
+	draw: function ( mesh, Point ) {
 
 		// faces are indexed using characters
 
-		if ( intersectedPoint == undefined ) {
+		if ( Point == undefined ) {
 
 			for ( var f = 0, fl = mesh.geometry.faces.length; f < fl; f ++ ) {
 
@@ -47,25 +50,25 @@ THREE.Brush.prototype = {
 		}
 
 		else {
-
+			mesh.worldToLocal( Point );
 			var sizeSquared =  this.size * this.size;
 			for ( var f = 0, fl = mesh.geometry.faces.length; f < fl; f ++ ) {
 
 				var face = mesh.geometry.faces[ f ];
 
-				scalarProduct = face.normal.dot( intersectedFace.normal );
+				//scalarProduct = face.normal.dot( Face.normal );
 				//	console.log( scalarProduct );				
-				if ( scalarProduct <= 0 ) continue;
+				//if ( scalarProduct <= 0 ) continue;
 
 				numberOfSides = ( face instanceof THREE.Face3 ) ? 3 : 4;
 				var flagDistance = false;
 				for ( var j = 0; j < numberOfSides; j++ ) {
 					vertexIndex = face[ this._faceIndices[ j ] ];
-					distance = intersectedPoint.distanceToSquared( mesh.geometry.vertices[ vertexIndex ] );
+					distance = Point.distanceToSquared( mesh.geometry.vertices[ vertexIndex ] );
 					if ( distance < sizeSquared ) { flagDistance = true; continue;}
 				}
 
-				if ( face === intersectedFace ) { flagDistance = true; }				
+				//if ( face === Face ) { flagDistance = true; }				
 				if ( flagDistance ) {
 					if ( mesh.material.vertexColors == THREE.FaceColors) {
 						face.color = this.color; }
