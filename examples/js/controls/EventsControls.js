@@ -1,5 +1,5 @@
  /** This EventsControls will allow to facilitate development speed for simple manipulations by means of a mouse
- * - a clique, pointing, movement.
+ * - point and click, drag and drop.
  * @author Vildanov Almaz / alvild@gmail.com
  */
 
@@ -10,7 +10,7 @@ EventsControls = function ( camera, domElement ) {
 	this.camera = camera;
 	this.container = ( domElement !== undefined ) ? domElement : document;
 	this.fixed = new THREE.Vector3( 0, 0, 0 );
-	this.displacing = true;
+	this.draggable = true;
 	
 	var _DisplaceFocused = null; // выделенный объект
 	this.focused = null; // выделенный объект
@@ -206,7 +206,7 @@ EventsControls = function ( camera, domElement ) {
 		_this._rayGet();
 
 		if ( _this.focused ) {
-		if ( _this.displacing ) {
+		if ( _this.draggable ) {
 
 			_DisplaceIntersectsMap = _this.raycaster.intersectObject( _this.projectionMap );
 			_this._setMap();

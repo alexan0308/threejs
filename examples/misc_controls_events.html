@@ -218,7 +218,7 @@
 
 
 				EventsControls4 = new EventsControls( camera, renderer.domElement );
-				EventsControls4.displacing = false;
+				EventsControls4.draggable = false;
 				
 				EventsControls4.mouseOver = function () {
 					this.container.style.cursor = 'pointer';
@@ -254,7 +254,7 @@
 
 
 				EventsControls5 = new EventsControls( camera, renderer.domElement );
-				EventsControls5.displacing = false; EventsControls5.attach( checkerboard );
+				EventsControls5.draggable = false; EventsControls5.attach( checkerboard );
 				
 				EventsControls5.mouseOver = function () {
 					controls.enabled = false;
@@ -269,7 +269,7 @@
 
 
 				EventsControls6 = new EventsControls( camera, renderer.domElement );
-				EventsControls6.displacing = false;
+				EventsControls6.draggable = false;
 
 				EventsControls6.onclick = function() {
 
