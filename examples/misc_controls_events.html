@@ -277,9 +277,13 @@
 					console.log( 'this.focused.name: ' + this.focused.name );
 					if ( this.focusedChild != null ) console.log( 'this.focusedChild.name: ' + this.focusedChild.name )
 						else  console.log( 'this.focusedChild is null' );
-						
-					console.log( 'this.focusedPoint: (' + this.focusedPoint.x + ', ' + this.focusedPoint.y + ', ' + this.focusedPoint.z + ')' );
+					
 					console.log( 'this.focusedDistance: ' + this.focusedDistance );
+					
+					console.log( 'this.focusedPoint: (' + this.focusedPoint.x + ', ' + this.focusedPoint.y + ', ' + this.focusedPoint.z + ')' );
+					// OR
+					console.log( 'this.focusedDistance: ' + this.intersects[0].distance );					
+					console.log( 'this.focusedPoint: (' + this.intersects[0].point.x + ', ' + this.intersects[0].point.y + ', ' + this.intersects[0].point.z + ')' );
 
 				}
 
