@@ -27,6 +27,8 @@
 		</div>
 
 		<script src="../build/three.min.js"></script>
+		<script src="js/loaders/MTLLoader.js"></script>
+		<script src="js/loaders/OBJMTLLoader.js"></script>
 
 		<script src="js/libs/stats.min.js"></script>
 
@@ -132,6 +134,17 @@
 				object3D.position.set( 25, h / 2, 175 );				
 				scene.add( object3D );  EventsControls1.attach( object3D );				
 
+			
+				var loader = new THREE.OBJMTLLoader();	
+					loader.load( 'models/objmtl/model.obj', 'models/objmtl/model.mtl', 
+						function ( GingerbreadMan ) {
+							GingerbreadMan.position.set( 125, 35, 175 );
+							GingerbreadMan.scale.set( 1/3, 1/3, 1/3 );
+							scene.add( GingerbreadMan );
+							EventsControls1.attach( GingerbreadMan );
+						}
+					);				
+				
 
 				EventsControls2 = new EventsControls( camera, renderer.domElement );
 				EventsControls2.projectionMap = checkerboard; EventsControls2.fixed.y = true;
@@ -176,10 +189,9 @@
 
 
 				var jsonLoader = new THREE.JSONLoader();
-				jsonLoader.load( "models/Tux.js", addModelToScene ); 			
-				
-				
-				
+				jsonLoader.load( "models/Tux.js", addModelToScene );
+
+
 				EventsControls3 = new EventsControls( camera, renderer.domElement );
 				EventsControls3.projectionMap = checkerboard; EventsControls3.fixed.y = true;
 
