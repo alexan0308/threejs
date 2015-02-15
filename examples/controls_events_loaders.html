@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - objects controls</title>
+		<meta charset="utf-8">
+		<style>
+			body {
+				margin: 0px;
+				color: #fff;
+				font-family:Monospace;
+				text-align: center;
+				font-size: 15px;
+				line-height: 30px;
+				overflow: hidden;
+			}
+			#info {
+				position: absolute;
+				top: 0px; width: 100%;
+				padding: 15px;
+				z-index:100;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="info">
+			<a href="http://threejs.org" target="_blank">three.js</a> - look console
+		</div>
+
+		<script src="../build/three.min.js"></script>
+		<script src="js/loaders/MTLLoader.js"></script>
+		<script src="js/loaders/OBJMTLLoader.js"></script>
+
+		<script src="js/libs/stats.min.js"></script>
+
+		<script src="js/controls/OrbitControls.js"></script>		
+		<script src="js/controls/EventsControls.js"></script>
+
+		<script>
+
+
+			var camera, scene, renderer, controls; 
+			var model;
+
+			var particleCount = 100;
+			var particleSystem;
+
+			init();
+			animate();
+
+			function init() {
+
+				renderer = new THREE.WebGLRenderer( { antialias: true } ); 
+				renderer.setClearColor( 0x6495ED );
+				renderer.setSize( window.innerWidth, window.innerHeight );				
+				document.body.appendChild( renderer.domElement );
+
+				//
+
+				stats = new Stats();
+				stats.domElement.style.position = 'absolute';
+				stats.domElement.style.top = '0px';
+				stats.domElement.style.zIndex = 100;
+				document.body.appendChild( stats.domElement );
+
+				//
+
+				camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 2000 );				
+				camera.position.set( 100, 400, 600 );
+				camera.lookAt( new THREE.Vector3( 0, 0, 0 ) );
+
+				controls = new THREE.OrbitControls( camera, renderer.domElement );
+				controls.rotateSpeed = 1;
+				controls.noZoom = false;
+				controls.zoomSpeed = 1.2;
+				controls.staticMoving = true;
+				controls.minPolarAngle = Math.PI / 3;
+				controls.maxPolarAngle = Math.PI / 3;
+
+				scene = new THREE.Scene();
+
+				var light = new THREE.DirectionalLight( 0xffffff, 1 );
+				light.position.set( 0, 500, 1000 );
+				scene.add( light );
+
+				var light = new THREE.AmbientLight( 0x222222 );
+				scene.add( light );
+
+
+				// world
+
+				var Texture = new THREE.ImageUtils.loadTexture( 'textures/checkerboard.jpg' );
+				Texture.wrapS = Texture.wrapT = THREE.RepeatWrapping;
+				Texture.repeat.set( 4, 4 );	Texture.offset.set( 0.5, 0 );
+
+				var Material = new THREE.MeshBasicMaterial( { map: Texture, side: THREE.DoubleSide } );
+				var Geometry = new THREE.PlaneGeometry( 400, 400, 1, 1 );
+
+				var checkerboard = new THREE.Mesh( Geometry, Material );
+				checkerboard.position.y = - 1;
+				checkerboard.rotation.x =  Math.PI / 2;
+				scene.add( checkerboard );
+
+
+				EventsControls1 = new EventsControls( camera, renderer.domElement );
+				EventsControls1.map = checkerboard;			
+
+				EventsControls1.attachEvent( 'mouseOver', function () {
+
+					this.container.style.cursor = 'pointer';
+
+				});
+
+				EventsControls1.attachEvent( 'mouseOut', function () {
+
+					this.container.style.cursor = 'auto';
+
+				});
+
+				EventsControls1.attachEvent( 'dragAndDrop', function () {
+
+					this.container.style.cursor = 'move';
+					this.focused.position.y = this.previous.y;
+					this.focused.position.x = 25 + 50 * Math.round( ( this.focused.position.x - 25 ) / 50 );
+					this.focused.position.z = 25 + 50 * Math.round( ( this.focused.position.z - 25 ) / 50 );
+
+				});
+
+				EventsControls1.attachEvent( 'mouseUp', function () {
+
+					var x = ( this.focused.position.x - 25 ) / 50;
+					var z = ( this.focused.position.z - 25 ) / 50;
+					
+					var sum = Math.abs( ( x + z ) % 2 );
+					if ( sum == 0 ) { this.returnPrevious() }
+					this.container.style.cursor = 'auto';
+
+				});
+
+				var loader = new THREE.OBJMTLLoader();	
+					loader.load( 'models/objmtl/model.obj', 'models/objmtl/model.mtl', 
+						function ( GingerbreadMan ) {
+							GingerbreadMan.position.set( 125, 35, 175 );
+							GingerbreadMan.scale.set( 1/3, 1/3, 1/3 );
+							scene.add( GingerbreadMan );
+							EventsControls1.attach( GingerbreadMan );
+						}
+					);
+
+
+				var jsonLoader = new THREE.JSONLoader();
+				jsonLoader.load( "models/Tux.js", addModelToScene );
+
+				EventsControls3 = new EventsControls( camera, renderer.domElement );
+				EventsControls3.attach( checkerboard );
+
+				EventsControls3.attachEvent( 'mouseOver', function () {
+
+					controls.enabled = false;
+
+				});
+
+				EventsControls3.attachEvent( 'mouseOut', function () {
+
+					controls.enabled = true;
+
+				});
+	
+			}
+
+			function addModelToScene( geometry, materials ) {
+
+				var material = new THREE.MeshFaceMaterial( materials );
+				model = new THREE.Mesh( geometry, material );
+				model.scale.set( 10, 10, 10 ); model.name = 'Tux';
+				model.rotation.x = -Math.PI/2; 
+				model.position.set( -75, 45, 175  );
+				scene.add( model ); EventsControls1.attach( model );
+	
+			}
+
+
+			function animate() {
+
+					requestAnimationFrame(animate);
+					render();
+
+			}
+
+
+			function render() {
+
+					stats.update();
+
+					EventsControls1.update();
+					EventsControls3.update();
+
+					controls.update();
+					renderer.render(scene, camera);
+
+			}
+
+				
+/*
+				// Sphere
+
+
+
+				var geometry = new THREE.SphereGeometry( 200, 24, 24 );
+				var material = new THREE.MeshLambertMaterial( { color: 0xFFCCFF, side: THREE.DoubleSide, wireframe: true } );
+				Spheree = new THREE.Mesh( geometry, material );
+			//	Spheree.position.x = -400;
+				Spheree.position.y = 0;
+				scene.add ( Spheree );
+
+				EventsControls7 = new EventsControls( camera, renderer.domElement );
+				EventsControls7.map = Spheree;
+
+				EventsControls7.mouseOver = function () {
+					this.container.style.cursor = 'pointer';
+					controls.enabled = false;
+				}
+
+				EventsControls7.mouseOut = function () {
+					this.container.style.cursor = 'auto';				
+					controls.enabled = true;
+				}
+
+				EventsControls7.mouseMove = function() {
+				
+					this.container.style.cursor = 'move';
+					this.focused.lookAt( this.intersectsMap[ 0 ].face.normal );
+					this.focused.position.set( 0, 0, 0 );
+					this.focused.position.copy( this.intersectsMap[ 0 ].point );
+
+				}
+
+				
+				var geometry = new THREE.CylinderGeometry( 0, 20, 100, 3 );
+				geometry.applyMatrix( new THREE.Matrix4().makeTranslation( 0, 50, 0 ) );
+				geometry.applyMatrix( new THREE.Matrix4().makeRotationZ( Math.PI / 2 ) );
+				helper = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: 0xCCCCFF } ) );
+				helper.position.set( -200, 0, 0 );
+				scene.add( helper );
+			
+				EventsControls7.attach( helper );			
+	*/					
+		</script>
+
+	</body>
+</html>
+
+

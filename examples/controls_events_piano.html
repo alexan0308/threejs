@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - objects controls</title>
+		<meta charset="utf-8">
+		<style>
+			body {
+				margin: 0px;
+				color: #fff;
+				font-family:Monospace;
+				text-align: center;
+				font-size: 15px;
+				line-height: 30px;
+				overflow: hidden;
+			}
+			#info {
+				position: absolute;
+				top: 0px; width: 100%;
+				padding: 15px;
+				z-index:100;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="info">
+			<a href="http://threejs.org" target="_blank">three.js</a> - look console
+		</div>
+
+		<script src="../build/three.min.js"></script>
+
+		<script src="js/libs/stats.min.js"></script>
+
+		<script src="js/controls/OrbitControls.js"></script>		
+		<script src="js/controls/EventsControls.js"></script>
+
+		<script>
+
+
+			var camera, scene, renderer, controls;
+
+			init();
+			animate();
+
+			function init() {
+
+
+				var sssr = '';
+				for ( var i = 0; i < 8; i ++ ) {
+					sssr = sssr + '<span id = "sound' + String( i )  + '"> </span>\n'; 
+				}
+
+				document.body.innerHTML = document.body.innerHTML + sssr;
+
+				renderer = new THREE.WebGLRenderer( { antialias: true } ); 
+				renderer.setClearColor( 0x6495ED );
+				renderer.setSize( window.innerWidth, window.innerHeight );				
+				document.body.appendChild( renderer.domElement );
+
+				//
+
+				stats = new Stats();
+				stats.domElement.style.position = 'absolute';
+				stats.domElement.style.top = '0px';
+				stats.domElement.style.zIndex = 100;
+				document.body.appendChild( stats.domElement );
+
+				//
+
+				camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 2000 );				
+				camera.position.set( 50, 200, 300 );
+				camera.lookAt( new THREE.Vector3( 0, 0, 0 ) );
+
+				controls = new THREE.OrbitControls( camera, renderer.domElement );
+				controls.rotateSpeed = 1;
+				controls.noZoom = false;
+				controls.zoomSpeed = 1.2;
+				controls.staticMoving = true;
+				controls.minPolarAngle = Math.PI / 3;
+				controls.maxPolarAngle = Math.PI / 3;
+
+				scene = new THREE.Scene();
+
+				var light = new THREE.DirectionalLight( 0xffffff, 1 );
+				light.position.set( 0, 500, 1000 );
+				scene.add( light );
+
+				var light = new THREE.AmbientLight( 0x222222 );
+				scene.add( light );
+
+
+				// piano
+
+
+				var autoMaterial = new THREE.MeshPhongMaterial( { color: 0x6a2089 } );
+				var selMaterial = new THREE.MeshPhongMaterial( { color: 0x00d9ff } );
+
+
+				EventsControls = new EventsControls( camera, renderer.domElement );
+
+				EventsControls.attachEvent( 'mouseOver', function () {
+
+					this.container.style.cursor = 'pointer';
+					this.mouseOvered.material = selMaterial;
+					console.log( 'the key at number ' + this.mouseOveredItem + ' is select' );
+
+				});
+
+				EventsControls.attachEvent( 'mouseOut', function () {
+
+					this.container.style.cursor = 'auto';
+					this.mouseOvered.material = autoMaterial;
+
+				});
+
+				EventsControls.attachEvent( 'onclick', function () {
+
+					this.focused.position.y = -20; 
+					DHTMLSound( 'snd/' + String( this.focusedItem ) + '.mp3', 'sound' + String( this.focusedItem ), ' ' );
+					setTimeout( 'scene.getObjectByName( "key' + String( this.focusedItem ) + '" ).position.y = 0', 100 );
+					console.log('/--------------------/');
+					console.log( 'the key at number ' + this.focusedItem + ' is pressed' );
+
+				});
+
+
+				var geometry = new THREE.BoxGeometry( 20, 20, 80 );
+
+				for ( var i = 0; i < 8; i ++ ) {
+
+					var key = new THREE.Mesh( geometry, autoMaterial );
+					key.position.set( i * 40 - 140, 0, 0 );
+					key.name = 'key' + String( i );
+					scene.add( key );
+					EventsControls.attach( key );
+
+				}
+
+			}
+
+
+			function DHTMLSound( audioSrc, id, loop ) {
+
+					try {
+						document.getElementById( id ).innerHTML = 
+						' <audio src=" ' + audioSrc + 
+						' " autoplay="autoplay" ' + loop + 
+						' ></audio> ';
+					}
+					catch( exception ) {}
+
+			}
+
+			function animate() {
+
+					requestAnimationFrame(animate);
+					render();
+
+			}
+
+
+			function render() {
+
+					stats.update();
+					EventsControls.update();
+					controls.update();
+					renderer.render(scene, camera);
+
+			}
+
+		</script>
+
+	</body>
+</html>

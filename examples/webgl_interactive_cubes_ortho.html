@@ -37,9 +37,8 @@
 		<script>
 
 			var container, stats;
-			var camera, scene, raycaster, renderer;
+			var camera, scene, renderer;
 
-			var mouse = new THREE.Vector2(), INTERSECTED;
 			var radius = 100, theta = 0;
 
 			init();
@@ -69,22 +68,25 @@
 
 
 				EventsControls = new EventsControls( camera, renderer.domElement );
-				EventsControls.displacing = false;
-				
-				EventsControls.mouseOver = function () {
+
+				EventsControls.attachEvent( 'mouseOver', function () {
+
 					this.container.style.cursor = 'pointer';
 
 					this.mouseOvered.currentHex = this.mouseOvered.material.emissive.getHex();
 					this.mouseOvered.material.emissive.setHex( 0xff0000 );
 
-					console.log( 'the key at number ' + this.mouseOveredItem + ' is select' );							
-				}				
+					console.log( 'the box at number ' + this.mouseOveredItem + ' is select' );
 
-				EventsControls.mouseOut = function () {
+				});
+
+				EventsControls.attachEvent( 'mouseOut', function () {
+
 					this.container.style.cursor = 'auto';
-					this.mouseOvered.material.emissive.setHex( this.mouseOvered.currentHex );					
-				}				
-				
+					this.mouseOvered.material.emissive.setHex( this.mouseOvered.currentHex );
+
+				});
+
 				var geometry = new THREE.BoxGeometry( 50, 50, 50 );
 
 				for ( var i = 0; i < 200; i ++ ) {
@@ -108,44 +110,12 @@
 
 				}
 
-				raycaster = new THREE.Raycaster();
-
 				stats = new Stats();
 				stats.domElement.style.position = 'absolute';
 				stats.domElement.style.top = '0px';
 				container.appendChild( stats.domElement );
 
-				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
-
-				//
-
-				window.addEventListener( 'resize', onWindowResize, false );
-
 			}
-
-			function onWindowResize() {
-
-				camera.left = window.innerWidth / - 2;
-				camera.right = window.innerWidth / 2;
-				camera.top = window.innerHeight / 2;
-				camera.bottom = window.innerHeight / - 2;
-
-				camera.updateProjectionMatrix();
-
-				renderer.setSize( window.innerWidth, window.innerHeight );
-
-			}
-
-			function onDocumentMouseMove( event ) {
-
-				event.preventDefault();
-
-				mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-				mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
-
-			}
-
-			//
 
 			function animate() {
 

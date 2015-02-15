@@ -22,12 +22,9 @@
 		<script>
 
 			var container, stats;
-			var camera, scene, raycaster, renderer, parentTransform, sphereInter;
+			var camera, scene, renderer, parentTransform, sphereInter;
 
-			var mouse = new THREE.Vector2();
 			var radius = 100, theta = 0;
-
-			var currentIntersected;
 
 			init();
 			animate();
@@ -58,25 +55,31 @@
 				//
 
 				EventsControls = new EventsControls( camera, renderer.domElement );
-				EventsControls.displacing = false;
 				EventsControls.raycaster.linePrecision = 3;
-				
-				EventsControls.mouseOver = function () {
+
+				EventsControls.attachEvent( 'mouseOver', function () {
+
 					this.container.style.cursor = 'pointer';
 
 					sphereInter.visible = true;
 					sphereInter.position.copy( this.mouseOveredPoint );
 
-					// the event of mouseOver is caused only once, in case of induction of a mouse. Therefore it is necessary to add:
-					this.mouseOvered = null;
+				});
 
-				}
+				EventsControls.attachEvent( 'mouseOut', function () {
 
-				EventsControls.mouseOut = function () {
 					this.container.style.cursor = 'auto';
-					sphereInter.visible = false;				
-				}					
+					sphereInter.visible = false;
+
+				});
 				
+				EventsControls.attachEvent( 'mouseMove', function () {
+
+					if ( this.mouseOvered ) sphereInter.position.copy( this.mouseOveredPoint );
+
+				});
+				
+
 				var geometry = new THREE.SphereGeometry( 5 );
 				var material = new THREE.MeshBasicMaterial( { color: 0xff0000 } );
 
@@ -134,45 +137,17 @@
 
 					parentTransform.add( object );
 					EventsControls.attach( object );
+
 				}
 
 				scene.add( parentTransform );
-
-				raycaster = new THREE.Raycaster();
-				raycaster.linePrecision = 3;
 
 				stats = new Stats();
 				stats.domElement.style.position = 'absolute';
 				stats.domElement.style.top = '0px';
 				container.appendChild( stats.domElement );
 
-				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
-
-				//
-
-				window.addEventListener( 'resize', onWindowResize, false );
-
 			}
-
-			function onWindowResize() {
-
-				camera.aspect = window.innerWidth / window.innerHeight;
-				camera.updateProjectionMatrix();
-
-				renderer.setSize( window.innerWidth, window.innerHeight );
-
-			}
-
-			function onDocumentMouseMove( event ) {
-
-				event.preventDefault();
-
-				mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-				mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
-
-			}
-
-			//
 
 			function animate() {
 
