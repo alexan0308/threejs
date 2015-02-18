@@ -27,8 +27,6 @@
 		</div>
 
 		<script src="../build/three.min.js"></script>
-		<script src="js/loaders/MTLLoader.js"></script>
-		<script src="js/loaders/OBJMTLLoader.js"></script>
 
 		<script src="js/libs/stats.min.js"></script>
 
@@ -270,19 +268,15 @@
 					if ( this.focusedChild != null ) console.log( 'this.focusedChild.name: ' + this.focusedChild.name )
 						else  console.log( 'this.focusedChild is null' );
 
-					console.log( 'this.focusedDistance: ' + this.focusedDistance );
-
-					console.log( 'this.focusedPoint: (' + this.focusedPoint.x + ', ' + this.focusedPoint.y + ', ' + this.focusedPoint.z + ')' );
-					// OR
-					console.log( 'this.focusedDistance: ' + this.intersects[0].distance );					
-					console.log( 'this.focusedPoint: (' + this.intersects[0].point.x + ', ' + this.intersects[0].point.y + ', ' + this.intersects[0].point.z + ')' );
+					console.log( 'this.event.distance: ' + this.event.distance );
+					console.log( 'this.event.point: (' + this.event.point.x + ', ' + this.event.point.y + ', ' + this.event.point.z + ')' );
 
 				});
 
 
 				var man = createSnowman(); 
 				man.position.set( 175, 0, 75 );
-				scene.add( man ); 
+				scene.add( man );
 
 				EventsControls4.attach( man );
 				
@@ -294,11 +288,17 @@
 				EventsControls5.attachEvent( 'mouseOver', function () {
 
 					controls.enabled = false;
+					controls.target0.copy( controls.target );
+					controls.position0.copy( controls.object.position );
 
 				});
 
 				EventsControls5.attachEvent( 'mouseOut', function () {
 
+					controls.reset();
+					controls.target.copy( controls.target0 );
+					controls.object.position.copy( controls.position0 );
+					controls.update();
 					controls.enabled = true;
 
 				});

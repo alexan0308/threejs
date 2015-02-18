@@ -101,7 +101,7 @@
 
 					this.container.style.cursor = 'pointer';
 					this.mouseOvered.material = selMaterial;
-					console.log( 'the key at number ' + this.mouseOveredItem + ' is select' );
+					console.log( 'the key at number ' + this.event.item + ' is select' );
 
 				});
 
@@ -114,11 +114,10 @@
 
 				EventsControls.attachEvent( 'onclick', function () {
 
-					this.focused.position.y = -20; 
-					DHTMLSound( 'snd/' + String( this.focusedItem ) + '.mp3', 'sound' + String( this.focusedItem ), ' ' );
-					setTimeout( 'scene.getObjectByName( "key' + String( this.focusedItem ) + '" ).position.y = 0', 100 );
-					console.log('/--------------------/');
-					console.log( 'the key at number ' + this.focusedItem + ' is pressed' );
+					this.focused.position.y = -20;
+					DHTMLSound( 'snd/' + String( this.event.item ) + '.mp3', 'sound' + String( this.event.item ), ' ' );
+					setTimeout( 'scene.getObjectByName( "key' + String( this.event.item ) + '" ).position.y = 0', 100 );
+					console.log( 'the key at number ' + this.event.item + ' is pressed' );
 
 				});
 

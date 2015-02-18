@@ -62,7 +62,7 @@
 					this.container.style.cursor = 'pointer';
 
 					sphereInter.visible = true;
-					sphereInter.position.copy( this.mouseOveredPoint );
+					sphereInter.position.copy( this.event.point );
 
 				});
 
@@ -75,7 +75,7 @@
 				
 				EventsControls.attachEvent( 'mouseMove', function () {
 
-					if ( this.mouseOvered ) sphereInter.position.copy( this.mouseOveredPoint );
+					if ( this.mouseOvered ) sphereInter.position.copy( this.event.point );
 
 				});
 				
