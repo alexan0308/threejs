@@ -1,0 +1,86 @@
+# 3ds Max Wavefront OBJ Exporter v0.97b - (c)2007 guruware
+# File Created: 23.03.2015 23:37:08
+
+newmtl HierroN
+	Ns 100.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.0000 0.0000 0.0000
+	Kd 0.1333 0.1490 0.1647
+	Ks 1.0000 1.0000 1.0000
+	Ke 0.0000 0.0000 0.0000
+	map_refl LAKEREM.jpg
+
+newmtl Tornillo
+	Ns 50.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.0000 0.0000 0.0000
+	Kd 0.1725 0.1765 0.1725
+	Ks 0.5000 0.5000 0.5000
+	Ke 0.0000 0.0000 0.0000
+	map_bump D900L.jpg
+	bump D900L.jpg
+	map_refl lakeREM.jpg
+
+newmtl Tuerca
+	Ns 100.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.0000 0.0000 0.0000
+	Kd 0.1333 0.1490 0.1647
+	Ks 1.0000 1.0000 1.0000
+	Ke 0.0000 0.0000 0.0000
+	map_refl lakeREM.jpg
+
+newmtl Madera
+	Ns 50.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.0000 0.0000 0.0000
+	Kd 0.5137 0.4510 0.3922
+	Ks 0.4000 0.4000 0.4000
+	Ke 0.0000 0.0000 0.0000
+	map_Ka D900m2.jpg
+	map_Kd D900m2.jpg
+	map_refl LAKEREM.jpg
+
+newmtl tuerca
+	Ns 60.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.0000 0.0000 0.0000
+	Kd 0.0627 0.0706 0.0627
+	Ks 0.6000 0.6000 0.6000
+	Ke 0.0000 0.0000 0.0000
+	map_refl lakeREM.jpg
+
+newmtl tornillo
+	Ns 50.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.0000 0.0000 0.0000
+	Kd 0.1176 0.1216 0.1176
+	Ks 0.5000 0.5000 0.5000
+	Ke 0.0000 0.0000 0.0000
+	map_bump D900L.jpg
+	bump D900L.jpg
+	map_refl lakeREM.jpg

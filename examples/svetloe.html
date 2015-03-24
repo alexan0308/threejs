@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - geometry - terrain</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				color: #000;
+				font-family:Monospace;
+				font-size:13px;
+				margin: 0px;
+				overflow: hidden;
+			}
+
+			#info {
+				position: absolute;
+				top: 0px; width: 100%;
+				text-align:center;
+				padding: 5px;
+			}
+
+			a {
+
+				color: #a06851;
+			}
+
+		</style>
+	</head>
+	<body>
+
+		<div id="info"><a href="http://threejs.org" target="_blank">three.js</a> - webgl ocean demo</div>
+
+		<script src="../build/three.min.js"></script>
+
+		<script src="js/controls/OrbitControls.js"></script>
+		<script src="js/Mirror.js"></script>
+		<script src="js/WaterShader.js"></script>
+
+		<script src="js/Detector.js"></script>
+		<script src="js/libs/stats.min.js"></script>
+
+		<script src="js/loaders/MTLLoader.js"></script>
+		<script src="js/loaders/OBJMTLLoader.js"></script>
+		
+		
+		<script>
+
+			if ( ! Detector.webgl ) {
+
+				Detector.addGetWebGLMessage();
+				document.getElementById( 'container' ).innerHTML = "";
+
+			}
+
+			var container, stats;
+			var camera, scene, renderer;
+			var sphere;
+
+			var parameters = {
+				width: 2000,
+				height: 2000,
+				widthSegments: 250,
+				heightSegments: 250,
+				depth: 1500,
+				param: 4,
+				filterparam: 1
+			}
+			
+			var waterNormals;
+
+			init();
+			animate();
+
+			function init() {
+
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+				renderer = new THREE.WebGLRenderer();
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				container.appendChild( renderer.domElement );
+
+				scene = new THREE.Scene();
+
+				camera = new THREE.PerspectiveCamera( 55, window.innerWidth / window.innerHeight, 0.5, 3000000 );
+				camera.position.set( 0, 4000, 12000 );
+
+				controls = new THREE.OrbitControls( camera, renderer.domElement );
+				controls.userPan = false;
+				controls.userPanSpeed = 0.0;
+				controls.maxDistance = 25000.0;
+				controls.maxPolarAngle = Math.PI * 0.495;
+				controls.center.set( 0, 500, 0 );
+
+				var light = new THREE.HemisphereLight( 0xffffbb, 0x080820, 1 );
+				light.position.set( - 1, 1, - 1 );
+				scene.add( light );
+
+				
+				waterNormals = new THREE.ImageUtils.loadTexture( 'textures/waternormals.jpg' );
+				waterNormals.wrapS = waterNormals.wrapT = THREE.RepeatWrapping; 
+
+				water = new THREE.Water( renderer, camera, scene, {
+					textureWidth: 512, 
+					textureHeight: 512,
+					waterNormals: waterNormals,
+					alpha: 	1.0,
+					sunDirection: light.position.clone().normalize(),
+					sunColor: 0xffffff,
+					waterColor: 0x001e0f,
+					distortionScale: 50.0,
+				} );
+
+
+				mirrorMesh = new THREE.Mesh(
+					new THREE.CircleGeometry( 2000, 64 ),
+					water.material
+				);
+				//scene.add( mirrorMesh );
+				
+				// California
+
+				var californiaPts = [];
+
+				californiaPts.push( new THREE.Vector2 ( 610, 320 ) );
+				californiaPts.push( new THREE.Vector2 ( 450, 300 ) );
+				californiaPts.push( new THREE.Vector2 ( 392, 392 ) );
+				californiaPts.push( new THREE.Vector2 ( 266, 438 ) );
+				californiaPts.push( new THREE.Vector2 ( 190, 570 ) );
+				californiaPts.push( new THREE.Vector2 ( 190, 600 ) );
+				californiaPts.push( new THREE.Vector2 ( 160, 620 ) );
+				californiaPts.push( new THREE.Vector2 ( 160, 650 ) );
+				californiaPts.push( new THREE.Vector2 ( 180, 640 ) );
+				californiaPts.push( new THREE.Vector2 ( 165, 680 ) );
+				californiaPts.push( new THREE.Vector2 ( 150, 670 ) );
+				californiaPts.push( new THREE.Vector2 (  90, 737 ) );
+				californiaPts.push( new THREE.Vector2 (  80, 795 ) );
+				californiaPts.push( new THREE.Vector2 (  50, 835 ) );
+				californiaPts.push( new THREE.Vector2 (  64, 870 ) );
+				californiaPts.push( new THREE.Vector2 (  60, 945 ) );
+				californiaPts.push( new THREE.Vector2 ( 300, 945 ) );
+				californiaPts.push( new THREE.Vector2 ( 300, 743 ) );
+				californiaPts.push( new THREE.Vector2 ( 600, 473 ) );
+				californiaPts.push( new THREE.Vector2 ( 626, 425 ) );
+				californiaPts.push( new THREE.Vector2 ( 600, 370 ) );
+				californiaPts.push( new THREE.Vector2 ( 610, 320 ) );
+
+				for( var i = 0; i < californiaPts.length; i ++ ) californiaPts[ i ].multiplyScalar( 13 );
+
+				var californiaShape = new THREE.Shape( californiaPts );
+					//var geometry = new THREE.ShapeGeometry( californiaShape );
+					//var mirrorMesh = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { side: THREE.DoubleSide } ) );
+					
+					//mirrorMesh.position.set( 0, 0, 0 );
+					//mirrorMesh.rotation.x = -Math.PI/2;
+					//mirrorMesh.rotation.z = -Math.PI/2;					
+
+var extrudeSettings = { 
+amount: 16, 
+bevelSegments: 8, 
+curveSegments: 32, 
+material: 0, 
+extrudeMaterial: 1 
+};
+
+var geometry = new THREE.ExtrudeGeometry( 
+californiaShape, extrudeSettings );
+
+
+
+var mesh = new THREE.Mesh( geometry, water.material );
+
+mesh.rotation.x = -Math.PI/3;
+
+mesh.rotation.x = -Math.PI/2;
+mesh.position.set( -5000, 10, 9000 );
+mesh.add( water );
+scene.add( mesh );
+					
+				
+				//mirrorMesh.add( water );
+				//mirrorMesh.rotation.x = - Math.PI * 0.5
+				//mirrorMesh.position.set( -4000, 20, 0 );
+				//scene.add( mirrorMesh );
+
+
+				// load skybox
+
+				var cubeMap = new THREE.CubeTexture( [] );
+				cubeMap.format = THREE.RGBFormat;
+				cubeMap.flipY = false;
+
+				var loader = new THREE.ImageLoader();
+				loader.load( 'textures/skyboxsun25degtest.png', function ( image ) {
+
+					var getSide = function ( x, y ) {
+
+						var size = 1024;
+
+						var canvas = document.createElement( 'canvas' );
+						canvas.width = size;
+						canvas.height = size;
+
+						var context = canvas.getContext( '2d' );
+						context.drawImage( image, - x * size, - y * size );
+
+						return canvas;
+
+					};
+
+					cubeMap.images[ 0 ] = getSide( 2, 1 ); // px
+					cubeMap.images[ 1 ] = getSide( 0, 1 ); // nx
+					cubeMap.images[ 2 ] = getSide( 1, 0 ); // py
+					cubeMap.images[ 3 ] = getSide( 1, 2 ); // ny
+					cubeMap.images[ 4 ] = getSide( 1, 1 ); // pz
+					cubeMap.images[ 5 ] = getSide( 3, 1 ); // nz
+					cubeMap.needsUpdate = true;
+
+				} );
+
+				var cubeShader = THREE.ShaderLib['cube'];
+				cubeShader.uniforms['tCube'].value = cubeMap;
+
+				var skyBoxMaterial = new THREE.ShaderMaterial( {
+					fragmentShader: cubeShader.fragmentShader,
+					vertexShader: cubeShader.vertexShader,
+					uniforms: cubeShader.uniforms,
+					depthWrite: false,
+					side: THREE.BackSide
+				});
+
+				var skyBox = new THREE.Mesh(
+					new THREE.BoxGeometry( 1000000, 1000000, 1000000 ),
+					skyBoxMaterial
+				);
+				
+				scene.add( skyBox );
+
+
+	
+				var scale = 20;
+				var sqWidth = scale * 926; 
+				var sqHight = scale * 1081;
+	
+
+			/*	var squareShape = new THREE.Shape();
+				squareShape.moveTo( 0,0 );
+				squareShape.lineTo( 0, sqWidth );
+				squareShape.lineTo( sqHight, sqWidth );
+				squareShape.lineTo( sqHight, 0 );
+				squareShape.lineTo( 0, 0 );
+				
+					var geometry = new THREE.ShapeGeometry( squareShape );
+
+				var Texture = new THREE.ImageUtils.loadTexture( 'textures/city.png' );
+				Texture.wrapS = THREE.RepeatWrapping;
+				Texture.wrapT = THREE.RepeatWrapping;
+				Texture.repeat.set( 1, 1 );
+				
+					var mesh = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { map: Texture, side: THREE.DoubleSide } ) );
+					
+					mesh.position.set( 0, 0, 0 );
+					mesh.rotation.x = -Math.PI/2;
+					scene.add( mesh );
+			*/
+				
+				
+				var geometry = new THREE.PlaneGeometry( sqWidth, sqHight, 10, 10 );
+				var material = new THREE.MeshLambertMaterial( { map: new THREE.ImageUtils.loadTexture( 'textures/city.png' ), side: THREE.DoubleSide, transparent: false, opacity: 0.6  } );
+
+				Plane = new THREE.Mesh( geometry, material );
+				Plane.position.set( 0, -5, 0 ); Plane.rotation.x = -Math.PI/2;
+				scene.add( Plane );
+
+            var gridLen = 20000;
+            gridCount = 1000;
+            var gridXZ = new THREE.GridHelper(gridLen, gridCount);
+            gridXZ.setColors(new THREE.Color(0xD3D3D3),
+                new THREE.Color(0xD3D3D3));
+            gridXZ.position.set(0, 10, 0);
+            //scene.add(gridXZ);				
+				
+				
+				
+					
+			var loader = new THREE.OBJMTLLoader();// כמאהונ
+
+			loader.load( 'models/arbor/arbor.obj', 'models/arbor/arbor.mtl', 
+				function ( arbor ) {
+					arbor.position.set( -500, 0, -1500 );	
+					scene.add( arbor );
+				}
+			);
+			
+
+			loader.load( 'models/playground/playground.obj', 'models/playground/playground.mtl', 
+				function ( playground ) {
+					playground.scale.set(1/4, 1/4, 1/4);
+					playground.position.set( -1000, 0, -5000 );	
+					scene.add( playground );
+				}
+			);	
+		
+					
+			loader.load( 'models/hexagonalBench/hexagonalBench.obj', 'models/hexagonalBench/hexagonalBench.mtl', 
+				function ( hexagonalBench ) {
+					hexagonalBench.scale.set(4, 4, 4);
+					hexagonalBench.position.set( 2000, 0, -2000 );	
+					scene.add( hexagonalBench );
+				}
+			);	
+			
+			
+
+
+			loader.load( 'models/outdoorBench/outdoorBench.obj', 'models/outdoorBench/outdoorBench.mtl', 
+				function ( outdoorBench ) {
+					outdoorBench.scale.set(2, 2, 2);
+					outdoorBench.position.set( 3000, 0, -2000 );
+					outdoorBench.rotation.y = Math.PI+Math.PI/3;					
+					scene.add( outdoorBench );
+					
+					var mesh = outdoorBench.clone();
+					scene.add( mesh );
+					mesh.position.set( 4000, 0, -1000 );	
+					//mesh.rotation.y = Math.PI+Math.PI/3;
+					
+					var mesh = outdoorBench.clone();
+					scene.add( mesh );
+					mesh.position.set( 5000, 0, 0 );
+					//mesh.rotation.y = Math.PI+Math.PI/3;
+					
+					var mesh = outdoorBench.clone();
+					scene.add( mesh );
+					mesh.position.set( 2000, 0, -3000 );
+					//mesh.rotation.y = Math.PI+Math.PI/3;	
+					
+				}
+			);	
+			
+
+			loader.load( 'models/urn/urn.obj', 'models/urn/urn.mtl', 
+				function ( urn ) {
+					urn.scale.set(4, 4, 4);
+					urn.position.set( 3500, 0, -2000 );	
+					scene.add( urn );
+					
+					var mesh = urn.clone();
+					scene.add( mesh );
+					mesh.position.set( 4500, 0, -1000 );	
+					//mesh.rotation.y = Math.PI+Math.PI/3;
+					
+					var mesh = urn.clone();
+					scene.add( mesh );
+					mesh.position.set( 5500, 0, 0 );
+					//mesh.rotation.y = Math.PI+Math.PI/3;
+					
+					var mesh = urn.clone();
+					scene.add( mesh );
+					mesh.position.set( 2500, 0, -3000 );
+					//mesh.rotation.y = Math.PI+Math.PI/3;						
+					
+					
+				}
+			);
+
+
+
+
+			loader.load( 'models/tent/tent.obj', 'models/tent/tent.mtl', 
+				function ( tent ) {
+					tent.scale.set(2, 2, 2);
+					tent.position.set( -2000, 0, -2000 );			
+					scene.add( tent );
+				}
+			);	
+			
+			loader.load( 'models/bridge/bridge3.obj', 'models/bridge/bridge3.mtl', 
+				function ( bridge3 ) {
+					bridge3.scale.set(1/2, 1/2, 1);
+					bridge3.position.set( 1500, 250, 1200 );
+					bridge3.rotation.y = -Math.PI/6;
+					bridge3.rotation.x = Math.PI/12;					
+					scene.add( bridge3 );
+				}
+			);	
+	
+
+
+			
+	/*		
+			loader.load( 'models/fountain/fountain.obj', 'models/fountain/fountain.mtl', 
+				function ( fountain ) {
+					fountain.scale.set(2, 2, 2);
+					fountain.position.set( -250, 0, -220 );	
+					//scene.add( fountain );
+				}
+			);	
+			
+			loader.load( 'models/bridge/bridge.obj', 'models/bridge/bridge.mtl', 
+				function ( bridge ) {
+					//bridge.scale.set(1/2, 1/2, 1/2);
+					bridge.position.set( 1500, 0, -1200 );	
+					//scene.add( bridge );
+				}
+			);	
+			
+	*/		
+			}
+
+			//
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+				render();
+
+			}
+
+			function render() {
+
+				var time = performance.now() * 0.001;
+
+				water.material.uniforms.time.value += 1.0 / 60.0;
+				controls.update();
+				water.render();
+				renderer.render( scene, camera );
+
+			}
+
+		</script>
+	</body>
+</html>
