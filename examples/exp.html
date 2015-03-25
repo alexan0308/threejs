@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - geometry - terrain</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				color: #000;
+				font-family:Monospace;
+				font-size:13px;
+				margin: 0px;
+				overflow: hidden;
+			}
+
+			#info {
+				position: absolute;
+				top: 0px; width: 100%;
+				text-align:center;
+				padding: 5px;
+			}
+
+			a {
+
+				color: #a06851;
+			}
+
+		</style>
+	</head>
+	<body>
+
+		<script src="../build/three.min.js"></script>
+
+		<script src="js/controls/OrbitControls.js"></script>
+
+		<script src="js/Detector.js"></script>
+		<script src="js/libs/stats.min.js"></script>
+		
+		
+		<script>
+
+			if ( ! Detector.webgl ) {
+
+				Detector.addGetWebGLMessage();
+				document.getElementById( 'container' ).innerHTML = "";
+
+			}
+
+			var container, stats;
+			var camera, scene, renderer;
+
+
+			init();
+			animate();
+
+			function init() {
+
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+				renderer = new THREE.WebGLRenderer();
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.setClearColor(0xFFFFFF);
+				container.appendChild( renderer.domElement );
+
+				scene = new THREE.Scene();
+
+				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.5, 3000000 );
+				camera.position.set( 0, 0, 4000 );
+
+				controls = new THREE.OrbitControls( camera, renderer.domElement );
+				controls.userPan = false;
+				controls.userPanSpeed = 0.0;
+				controls.maxDistance = 25000.0;
+				controls.maxPolarAngle = Math.PI * 0.495;
+				controls.center.set( 0, 500, 0 );
+
+				var light = new THREE.HemisphereLight( 0xffffbb, 0x080820, 1 );
+				light.position.set( 0, 0, 1000 );
+				scene.add( light );
+
+
+				var scale = 2;
+				//var sqWidth = scale * 926; 
+				//var sqHight = scale * 1081;
+
+				var sqWidth = scale * 1024; 
+				var sqHight = scale * 1024;
+
+				var squareShape = new THREE.Shape();
+				squareShape.moveTo( 0, 0 );
+				squareShape.lineTo( sqWidth, 0 ); // <=========== counterClockwise widing order.
+				squareShape.lineTo( sqWidth, sqHight );
+				squareShape.lineTo( 0, sqHight );
+				squareShape.closePath();
+			
+			var californiaPath = new THREE.Path();
+				
+				californiaPath.moveTo( 610, 320 );			
+				californiaPath.lineTo( 450, 300 );
+				californiaPath.lineTo( 392, 392 );
+				californiaPath.lineTo( 266, 438 );
+				californiaPath.lineTo( 190, 570 );
+				californiaPath.lineTo( 190, 600 );
+				californiaPath.lineTo( 160, 620 );
+				californiaPath.lineTo( 160, 650 );
+				californiaPath.lineTo( 180, 640 );
+				californiaPath.lineTo( 165, 680 );
+				californiaPath.lineTo( 150, 670 );
+				californiaPath.lineTo(  90, 737 );
+				californiaPath.lineTo(  80, 795 );
+				californiaPath.lineTo(  50, 835 );
+				californiaPath.lineTo(  64, 870 );
+				californiaPath.lineTo(  60, 945 );
+				californiaPath.lineTo( 300, 945 );
+				californiaPath.lineTo( 300, 743 );
+				californiaPath.lineTo( 600, 473 );
+				californiaPath.lineTo( 626, 425 );
+				californiaPath.lineTo( 600, 370 );
+				californiaPath.closePath();
+
+				squareShape.holes.push( californiaPath );	
+	
+				var Radius = 190, x0 = 1440, y0 = 1260;
+				var CirclePath = new THREE.Path();
+				CirclePath.moveTo( x0 + Radius, y0 );
+				CirclePath.absarc( x0, y0, Radius, 0, Math.PI*2, true );
+				CirclePath.closePath();				
+				squareShape.holes.push( CirclePath );
+
+
+	
+				var geometry = new THREE.ShapeGeometry( squareShape );
+		
+				geometry.faceUvs = [[]];
+				geometry.faceVertexUvs = [[]];
+
+				for (var f = 0; f < geometry.faces.length; f++) {
+
+					var faceuv = [
+						new THREE.Vector2(0, 1),
+						new THREE.Vector2(1, 1),
+						new THREE.Vector2(1, 0),
+						new THREE.Vector2(0, 0)
+					];
+
+					geometry.faceUvs[0].push(new THREE.Vector2(0, 1));
+					geometry.faceVertexUvs[0].push(faceuv);
+				}
+					var Texture = THREE.ImageUtils.loadTexture( 'textures/UV_Grid_Sm.jpg' );
+					
+					var material = new THREE.MeshLambertMaterial( { map: Texture, side: THREE.DoubleSide } );
+					//var material = new THREE.MeshLambertMaterial( {color: 0x0000FF, side: THREE.DoubleSide } );
+					var mesh = new THREE.Mesh( geometry, material );
+					
+					mesh.position.set( 0, -500, 0 );
+					//mesh.rotation.x = -Math.PI/2;
+					scene.add( mesh );
+
+					
+				var extrudeSettings = { 
+					amount: 160, 
+					bevelSegments: 8, 
+					curveSegments: 32, 
+					material: 0, 
+					extrudeMaterial: 1 
+				};
+				
+				
+			var Texture = THREE.ImageUtils.loadTexture( 'textures/UV_Grid_Sm.jpg' );
+				Texture.wrapS = Texture.wrapT = THREE.RepeatWrapping;
+					Texture.repeat.set( 1 / (2 * 1024), 1 / (2 * 1024) );
+				var material = new THREE.MeshBasicMaterial( { map: Texture } );
+				
+	var ExtrTexture = THREE.ImageUtils.loadTexture( 'textures/extrmtr.jpg' );
+	ExtrTexture.wrapS = ExtrTexture.wrapT = THREE.RepeatWrapping;
+	ExtrTexture.offset.set( 0, 0.7 );
+	ExtrTexture.repeat.set( 0, 0.02 );
+	var extrMaterial = new THREE.MeshBasicMaterial( { map: ExtrTexture } );
+	
+	var materials = [ material, extrMaterial ];
+	var material = new THREE.MeshFaceMaterial( materials );			
+				
+				
+				var geometry = new THREE.ExtrudeGeometry( squareShape, extrudeSettings );
+				var mesh = new THREE.Mesh( geometry, material );
+					
+				mesh.position.set( -2500, -500, 0 );
+
+				scene.add( mesh );
+					
+					
+			}
+
+			//
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+				render();
+
+			}
+
+			function render() {
+				//controls.update();
+				renderer.render( scene, camera );
+
+			}
+
+		</script>
+	</body>
+</html>

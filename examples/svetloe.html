@@ -43,9 +43,27 @@
 		<script src="js/loaders/MTLLoader.js"></script>
 		<script src="js/loaders/OBJMTLLoader.js"></script>
 		
-		
+		<!-- ShaderParticles -->
+		<script type="text/javascript" src="js/ShaderParticleEngine/ShaderParticleUtils.js"></script>
+		<script type="text/javascript" src="js/ShaderParticleEngine/ShaderParticleGroup.js"></script>
+		<script type="text/javascript" src="js/ShaderParticleEngine/ShaderParticleEmitter.js"></script>	
+	
 		<script>
 
+
+			THREE.Path.prototype.moveToVector = function ( vector ) {
+
+				this.moveTo( vector.x, vector.y );
+
+			};
+
+			THREE.Path.prototype.lineToVector = function ( vector ) {
+
+				this.lineTo( vector.x, vector.y );
+
+			};
+					
+		
 			if ( ! Detector.webgl ) {
 
 				Detector.addGetWebGLMessage();
@@ -55,8 +73,11 @@
 
 			var container, stats;
 			var camera, scene, renderer;
-			var sphere;
 
+			        // Used in initParticles()
+			var emitter, particleGroup;
+			var clock = new THREE.Clock();
+			
 			var parameters = {
 				width: 2000,
 				height: 2000,
@@ -87,6 +108,10 @@
 				camera = new THREE.PerspectiveCamera( 55, window.innerWidth / window.innerHeight, 0.5, 3000000 );
 				camera.position.set( 0, 4000, 12000 );
 
+				//camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 10000);
+				//camera.position.z = 50;
+				//camera.lookAt( scene.position );
+			
 				controls = new THREE.OrbitControls( camera, renderer.domElement );
 				controls.userPan = false;
 				controls.userPanSpeed = 0.0;
@@ -99,95 +124,9 @@
 				scene.add( light );
 
 				
-				waterNormals = new THREE.ImageUtils.loadTexture( 'textures/waternormals.jpg' );
-				waterNormals.wrapS = waterNormals.wrapT = THREE.RepeatWrapping; 
+				//------------------ load skybox ------------------ //
 
-				water = new THREE.Water( renderer, camera, scene, {
-					textureWidth: 512, 
-					textureHeight: 512,
-					waterNormals: waterNormals,
-					alpha: 	1.0,
-					sunDirection: light.position.clone().normalize(),
-					sunColor: 0xffffff,
-					waterColor: 0x001e0f,
-					distortionScale: 50.0,
-				} );
-
-
-				mirrorMesh = new THREE.Mesh(
-					new THREE.CircleGeometry( 2000, 64 ),
-					water.material
-				);
-				//scene.add( mirrorMesh );
 				
-				// California
-
-				var californiaPts = [];
-
-				californiaPts.push( new THREE.Vector2 ( 610, 320 ) );
-				californiaPts.push( new THREE.Vector2 ( 450, 300 ) );
-				californiaPts.push( new THREE.Vector2 ( 392, 392 ) );
-				californiaPts.push( new THREE.Vector2 ( 266, 438 ) );
-				californiaPts.push( new THREE.Vector2 ( 190, 570 ) );
-				californiaPts.push( new THREE.Vector2 ( 190, 600 ) );
-				californiaPts.push( new THREE.Vector2 ( 160, 620 ) );
-				californiaPts.push( new THREE.Vector2 ( 160, 650 ) );
-				californiaPts.push( new THREE.Vector2 ( 180, 640 ) );
-				californiaPts.push( new THREE.Vector2 ( 165, 680 ) );
-				californiaPts.push( new THREE.Vector2 ( 150, 670 ) );
-				californiaPts.push( new THREE.Vector2 (  90, 737 ) );
-				californiaPts.push( new THREE.Vector2 (  80, 795 ) );
-				californiaPts.push( new THREE.Vector2 (  50, 835 ) );
-				californiaPts.push( new THREE.Vector2 (  64, 870 ) );
-				californiaPts.push( new THREE.Vector2 (  60, 945 ) );
-				californiaPts.push( new THREE.Vector2 ( 300, 945 ) );
-				californiaPts.push( new THREE.Vector2 ( 300, 743 ) );
-				californiaPts.push( new THREE.Vector2 ( 600, 473 ) );
-				californiaPts.push( new THREE.Vector2 ( 626, 425 ) );
-				californiaPts.push( new THREE.Vector2 ( 600, 370 ) );
-				californiaPts.push( new THREE.Vector2 ( 610, 320 ) );
-
-				for( var i = 0; i < californiaPts.length; i ++ ) californiaPts[ i ].multiplyScalar( 13 );
-
-				var californiaShape = new THREE.Shape( californiaPts );
-					//var geometry = new THREE.ShapeGeometry( californiaShape );
-					//var mirrorMesh = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { side: THREE.DoubleSide } ) );
-					
-					//mirrorMesh.position.set( 0, 0, 0 );
-					//mirrorMesh.rotation.x = -Math.PI/2;
-					//mirrorMesh.rotation.z = -Math.PI/2;					
-
-var extrudeSettings = { 
-amount: 16, 
-bevelSegments: 8, 
-curveSegments: 32, 
-material: 0, 
-extrudeMaterial: 1 
-};
-
-var geometry = new THREE.ExtrudeGeometry( 
-californiaShape, extrudeSettings );
-
-
-
-var mesh = new THREE.Mesh( geometry, water.material );
-
-mesh.rotation.x = -Math.PI/3;
-
-mesh.rotation.x = -Math.PI/2;
-mesh.position.set( -5000, 10, 9000 );
-mesh.add( water );
-scene.add( mesh );
-					
-				
-				//mirrorMesh.add( water );
-				//mirrorMesh.rotation.x = - Math.PI * 0.5
-				//mirrorMesh.position.set( -4000, 20, 0 );
-				//scene.add( mirrorMesh );
-
-
-				// load skybox
-
 				var cubeMap = new THREE.CubeTexture( [] );
 				cubeMap.format = THREE.RGBFormat;
 				cubeMap.flipY = false;
@@ -239,20 +178,207 @@ scene.add( mesh );
 				scene.add( skyBox );
 
 
-	
+				//------------------ load bright lake ------------------ //
+				
+				
+				waterNormals = new THREE.ImageUtils.loadTexture( 'textures/waternormals.jpg' );
+				waterNormals.wrapS = waterNormals.wrapT = THREE.RepeatWrapping; 
+
+				water = new THREE.Water( renderer, camera, scene, {
+					textureWidth: 512, 
+					textureHeight: 512,
+					waterNormals: waterNormals,
+					alpha: 	1.0,
+					sunDirection: light.position.clone().normalize(),
+					sunColor: 0xffffff,
+					waterColor: 0x001e0f,
+					distortionScale: 50.0,
+				} );
+
+
+				// California
+
+				var californiaPts = [], vectors=[];
+					vectors[0] = new THREE.Vector3(247,-101);
+					vectors[1] = new THREE.Vector3(200,-70);
+					vectors[2] = new THREE.Vector3(148,-35);
+					vectors[3] = new THREE.Vector3(103,2);
+					vectors[4] = new THREE.Vector3(65,33);
+					vectors[5] = new THREE.Vector3(26,55);
+					vectors[6] = new THREE.Vector3(-10,73);
+					vectors[7] = new THREE.Vector3(-51,103);
+					vectors[8] = new THREE.Vector3(-69,145);
+					vectors[9] = new THREE.Vector3(-60,188);
+					vectors[10] = new THREE.Vector3(-87,203);
+					vectors[11] = new THREE.Vector3(-148,213);
+					vectors[12] = new THREE.Vector3(-181,186);
+					vectors[13] = new THREE.Vector3(-215,145);
+					vectors[14] = new THREE.Vector3(-238,110);
+					vectors[15] = new THREE.Vector3(-240,66);
+					vectors[16] = new THREE.Vector3(-235,17);
+					vectors[17] = new THREE.Vector3(-223,-18);
+					vectors[18] = new THREE.Vector3(-192,-51);
+					vectors[19] = new THREE.Vector3(-127,-87);
+					vectors[20] = new THREE.Vector3(-52,-91);
+					vectors[21] = new THREE.Vector3(-20,-94);
+					vectors[22] = new THREE.Vector3(21,-108);
+					vectors[23] = new THREE.Vector3(54,-124);
+					vectors[24] = new THREE.Vector3(87,-156);
+					vectors[25] = new THREE.Vector3(119,-187);
+					vectors[26] = new THREE.Vector3(149,-213);
+					vectors[27] = new THREE.Vector3(186,-214);
+					vectors[28] = new THREE.Vector3(203,-201);
+					vectors[29] = new THREE.Vector3(224,-155);
+				
+				for ( var i = 0; i < vectors.length; i++ ) {
+
+					californiaPts.push( vectors[i] );
+
+				}				
+
+
+				for( var i = 0; i < californiaPts.length; i ++ ) californiaPts[ i ].multiplyScalar( 20 );
+
+				var californiaShape = new THREE.Shape( californiaPts );
+					//var geometry = new THREE.ShapeGeometry( californiaShape );
+					//var mirrorMesh = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { side: THREE.DoubleSide } ) );
+					
+					//mirrorMesh.position.set( 0, 0, 0 );
+					//mirrorMesh.rotation.x = -Math.PI/2;
+					//mirrorMesh.rotation.z = -Math.PI/2;					
+
+				var extrMaterial = new THREE.MeshBasicMaterial({
+						color: 0xffffff,
+						side: THREE.DoubleSide
+				});				
+
+				var extrudeSettings = { 
+					amount: 16, 
+					bevelSegments: 8, 
+					curveSegments: 32, 
+					material: 0, 
+					extrudeMaterial: 1 
+				};
+
+				var geometry = new THREE.ExtrudeGeometry( californiaShape, extrudeSettings );
+				water.material.transparent = false;
+				var materials = [water.material, extrMaterial];
+				var material = new THREE.MeshFaceMaterial(materials);
+				
+				//var material = new THREE.MeshBasicMaterial( { color: 0x0000ff, side: THREE.DoubleSide, transparent: false, opacity: 0.5 } );
+
+				var mesh = new THREE.Mesh( geometry, material );
+
+				mesh.rotation.x = -Math.PI/2;
+				mesh.position.set( -450, -400, 1200 );
+				mesh.add( water );
+				scene.add( mesh );
+							
+				
+				//mirrorMesh.add( water );
+				//mirrorMesh.rotation.x = - Math.PI * 0.5
+				//mirrorMesh.position.set( -4000, 20, 0 );
+				//scene.add( mirrorMesh );
+
+
+
+
+
+
 				var scale = 20;
 				var sqWidth = scale * 926; 
 				var sqHight = scale * 1081;
 	
+	
+				var squareShape = new THREE.Shape();
+				squareShape.moveTo(0, 0);
+				squareShape.lineTo(sqWidth, 0); // <=========== counterClockwise widing order.
+				squareShape.lineTo(sqWidth, sqHight);
+				squareShape.lineTo(0, sqHight);
+				squareShape.closePath();
 
-			/*	var squareShape = new THREE.Shape();
-				squareShape.moveTo( 0,0 );
-				squareShape.lineTo( 0, sqWidth );
-				squareShape.lineTo( sqHight, sqWidth );
-				squareShape.lineTo( sqHight, 0 );
-				squareShape.lineTo( 0, 0 );
+
+				var CirclePath = new THREE.Path();
+				var biasX = 1300; var biasY = 2100;
+				var vector = new THREE.Vector2( vectors[0].x + sqWidth/2-biasX,  vectors[0].y + sqHight/2-biasY ).multiplyScalar( 1.1 );
+				CirclePath.moveToVector(vector);
 				
-					var geometry = new THREE.ShapeGeometry( squareShape );
+				for ( var i = 1; i < vectors.length; i++ ) {
+
+					var vector = new THREE.Vector2( vectors[i].x + sqWidth/2-biasX,  vectors[i].y + sqHight/2-biasY ).multiplyScalar( 1.1 );
+					CirclePath.lineToVector(vector);
+
+				}					
+				CirclePath.closePath();
+				squareShape.holes.push(CirclePath);
+				
+				var Texture = new THREE.ImageUtils.loadTexture( 'textures/city3.png' );
+				Texture.wrapS = Texture.wrapT = THREE.RepeatWrapping;
+				Texture.repeat.set(1 / (sqWidth), 1 / ( sqHight));
+				var material = new THREE.MeshBasicMaterial({
+					map: Texture
+				});
+
+
+				var extrMaterial = new THREE.MeshLambertMaterial({
+						color: 0x6B8E23,
+						side: THREE.DoubleSide
+				});
+
+					
+				var ExtrTexture = THREE.ImageUtils.loadTexture( 'textures/extrmtr.jpg' );
+				ExtrTexture.wrapS = ExtrTexture.wrapT= THREE.RepeatWrapping;
+
+				ExtrTexture.offset.set( 0, 0.2 );
+				ExtrTexture.repeat.set( 0, 0.0001 );
+
+				var extrMaterial = new THREE.MeshBasicMaterial( { map: ExtrTexture } );
+	
+									
+				
+				var materials = [material, extrMaterial];
+				var material = new THREE.MeshFaceMaterial(materials);
+					
+				var heightShore = 400, amount = 160;
+				var extrudeSettings = { 
+					amount: amount, 
+					bevelSegments: 8, 
+					curveSegments: 32,
+					bevelEnabled: true,
+					bevelThickness: heightShore,
+					bevelSize: 600,
+					material: 0, 
+					extrudeMaterial: 1 
+				};
+				
+				var geometry = new THREE.ExtrudeGeometry(squareShape, extrudeSettings);
+				var mesh = new THREE.Mesh(geometry, material);
+
+				mesh.position.set(-sqWidth/2, -heightShore - amount, sqHight/2);
+				mesh.rotation.x = -Math.PI/2;
+				scene.add(mesh);			
+							
+				/*
+				var geometry = new THREE.ShapeGeometry( squareShape );
+				geometry.faceUvs = [
+					[]
+				];
+				geometry.faceVertexUvs = [
+					[]
+				];				
+								
+				for (var f = 0; f < geometry.faces.length; f++) {
+
+					var faceuv = [
+						new THREE.Vector2(0, 1),
+						new THREE.Vector2(1, 1),
+						new THREE.Vector2(1, 0),
+						new THREE.Vector2(0, 0)
+					];
+
+					geometry.faceUvs[0].push(new THREE.Vector2(0, 1));
+					geometry.faceVertexUvs[0].push(faceuv);
+				}
 
 				var Texture = new THREE.ImageUtils.loadTexture( 'textures/city.png' );
 				Texture.wrapS = THREE.RepeatWrapping;
@@ -272,21 +398,93 @@ scene.add( mesh );
 
 				Plane = new THREE.Mesh( geometry, material );
 				Plane.position.set( 0, -5, 0 ); Plane.rotation.x = -Math.PI/2;
-				scene.add( Plane );
+			//	scene.add( Plane );
 
-            var gridLen = 20000;
+				
+				
+			initParticles( -2000, -120, 1000 );
+
+			
+			
+			
+				//------------------ load GRID ------------------ //
+				
+			var gridLen = 20000;
             gridCount = 1000;
             var gridXZ = new THREE.GridHelper(gridLen, gridCount);
-            gridXZ.setColors(new THREE.Color(0xD3D3D3),
-                new THREE.Color(0xD3D3D3));
+            gridXZ.setColors(new THREE.Color(0xD3D3D3), new THREE.Color(0xD3D3D3));
             gridXZ.position.set(0, 10, 0);
-            //scene.add(gridXZ);				
+            //scene.add(gridXZ);
+			
+			
+				//------------------ load exterior ------------------ //
 				
-				
-				
-					
-			var loader = new THREE.OBJMTLLoader();// лоадер
+			
 
+			var loader = new THREE.OBJMTLLoader(); // лоадер
+			loader.load( 'models/tent/tent.obj', 'models/tent/tent.mtl', 
+				function ( tent ) {
+					tent.scale.set(3, 3, 3);
+					tent.position.set( -1500, 300, -2000 );			
+					scene.add( tent );
+				}
+			);	
+			
+			loader.load( 'models/busStation/busStation.obj', 'models/busStation/busStation.mtl', 
+				function ( busStation ) {
+					busStation.scale.set(3, 3, 3);
+					busStation.position.set( -6500, 100, 0 );	
+					busStation.rotation.y = -Math.PI/2;					
+					scene.add( busStation );
+				}
+			);				
+			
+			
+			loader.load( 'models/bridge/bridge3.obj', 'models/bridge/bridge3.mtl', 
+				function ( bridge3 ) {
+					bridge3.scale.set(1/2, 1/2, 2/3);
+					bridge3.position.set( 1500, 0, 1400 );
+					bridge3.rotation.y = -Math.PI/6;
+					bridge3.rotation.x = Math.PI/6;
+					bridge3.rotation.z = Math.PI/12;					
+					scene.add( bridge3 );
+				}
+			);	
+
+
+			
+
+			loader.load( 'models/tree/tree1.obj', 'models/tree/tree1.mtl', 
+				function ( tree ) {
+					tree.scale.set(2, 2, 2);
+					tree.position.set( -6000, 0, -2000 );			
+					scene.add( tree );
+					
+					var mesh = tree.clone();
+					scene.add( mesh );
+					mesh.position.set( -6000, 0, -1000 );
+
+					var mesh = tree.clone();
+					scene.add( mesh );
+					mesh.position.set( -6000, 0, 0 );
+	
+					var mesh = tree.clone();
+					scene.add( mesh );
+					mesh.position.set( -6000, 0, 1000 );	
+
+					scene.add( mesh );
+					mesh.position.set( -7000, 0, 9000 );	
+					mesh.scale.set(16, 2, 16);
+
+
+					
+				}
+			);	
+			
+			
+		
+
+	
 			loader.load( 'models/arbor/arbor.obj', 'models/arbor/arbor.mtl', 
 				function ( arbor ) {
 					arbor.position.set( -500, 0, -1500 );	
@@ -368,29 +566,24 @@ scene.add( mesh );
 
 
 
+		/*
 
-			loader.load( 'models/tent/tent.obj', 'models/tent/tent.mtl', 
-				function ( tent ) {
-					tent.scale.set(2, 2, 2);
-					tent.position.set( -2000, 0, -2000 );			
-					scene.add( tent );
+			loader.load( 'models/tree/tree2.obj', 'models/tree/tree2.mtl', 
+				function ( tree ) {
+					tree.scale.set(3, 3, 3);
+					tree.position.set( -1600, 300, -2000 );			
+					scene.add( tree );
 				}
 			);	
 			
-			loader.load( 'models/bridge/bridge3.obj', 'models/bridge/bridge3.mtl', 
-				function ( bridge3 ) {
-					bridge3.scale.set(1/2, 1/2, 1);
-					bridge3.position.set( 1500, 250, 1200 );
-					bridge3.rotation.y = -Math.PI/6;
-					bridge3.rotation.x = Math.PI/12;					
-					scene.add( bridge3 );
+			loader.load( 'models/tree/tree3.obj', 'models/tree/tree3.mtl', 
+				function ( tree ) {
+					tree.scale.set(3, 3, 3);
+					tree.position.set( -2200, 300, -2000 );			
+					scene.add( tree );
 				}
 			);	
 	
-
-
-			
-	/*		
 			loader.load( 'models/fountain/fountain.obj', 'models/fountain/fountain.mtl', 
 				function ( fountain ) {
 					fountain.scale.set(2, 2, 2);
@@ -406,12 +599,66 @@ scene.add( mesh );
 					//scene.add( bridge );
 				}
 			);	
-			
+  newmtl название_материала1   # ќбъ€вление очередного материала
+  # ÷вета
+  Ka 1,000 1,000 0,000         # ÷вет окружающего освещени€ (желтый)
+  Kd 1,000 1,000 1,000         # ƒиффузный цвет (белый)
+  # ѕараметры отражени€
+  Ks 0,000 0,000 0,000         # ÷вет зеркального отражени€ (0;0;0 - выключен)
+  Ns 10,000                    #  оэффициент зеркального отражени€ (от 0 до 1000)
+  # ѕараметры прозрачности
+  d 0,9                        # ѕрозрачность указываетс€ с помощью директивы d
+  Tr 0,9                       #   или в других реализаци€х формата с помощью Tr
+  #—ледующий материал
+  newmtl название_материала2
+  ...	
+
+Х map_Ka -  “екстура
+Х map_Kd -  ƒиффузна€ текстура
+Х map_Ks -  Specular
+Х map_Ns -  Specular highlight
+Х map_d - Alpha
+Х map_bump - название говорит само за себ€ Bump.
+Х map_Ke -  Emission - самосвечение (или собственное излучение).  
 	*/		
 			}
 
 			//
 
+        function initParticles( x, y, z ) {
+        	particleGroup = new SPE.Group({
+        		texture: THREE.ImageUtils.loadTexture('textures/smokeparticle.png'),
+        		maxAge: 2
+        	});
+
+        	emitter = new SPE.Emitter({
+        		position: new THREE.Vector3( x, y, z ),
+                positionSpread: new THREE.Vector3( 0, 0, 0 ),
+
+        		acceleration: new THREE.Vector3(0, -10, 0).multiplyScalar(50),
+        		accelerationSpread: new THREE.Vector3( 10, 0, 10 ).multiplyScalar(50),
+
+        		velocity: new THREE.Vector3(0, 15, 0).multiplyScalar(50),
+        		velocitySpread: new THREE.Vector3(10, 7.5, 10).multiplyScalar(50),
+
+        		colorStart: new THREE.Color('white'),
+        		colorEnd: new THREE.Color('red'),
+
+        		sizeStart: 1,
+        		sizeEnd: 1,
+				opacityStart: 1,
+                opacityEnd: 1,
+        		particleCount: 2000
+        	});
+
+        	particleGroup.addEmitter( emitter );
+        	scene.add( particleGroup.mesh );
+
+        	//document.querySelector('.numParticles').textContent =
+        		//'Total particles: ' + emitter.particleCount;
+        }			
+			
+			
 			function animate() {
 
 				requestAnimationFrame( animate );
@@ -425,10 +672,17 @@ scene.add( mesh );
 
 				water.material.uniforms.time.value += 1.0 / 60.0;
 				controls.update();
-				water.render();
+				water.render();		
+				
+				renderParticle( clock.getDelta() );				
 				renderer.render( scene, camera );
 
+
 			}
+			
+			function renderParticle( dt ) {
+				particleGroup.tick( dt );
+			}			
 
 		</script>
 	</body>
