@@ -47,6 +47,8 @@
 		<script type="text/javascript" src="js/ShaderParticleEngine/ShaderParticleUtils.js"></script>
 		<script type="text/javascript" src="js/ShaderParticleEngine/ShaderParticleGroup.js"></script>
 		<script type="text/javascript" src="js/ShaderParticleEngine/ShaderParticleEmitter.js"></script>	
+
+		<script src="js/controls/EventsControls.js"></script>		
 	
 		<script>
 
@@ -74,6 +76,12 @@
 			var container, stats;
 			var camera, scene, renderer;
 
+			var californiaPts = [], vectors=[];
+
+				var scale = 20;
+				var sqWidth = scale * 1024; 
+				var sqHight = scale * 1024;			
+			
 			        // Used in initParticles()
 			var emitter, particleGroup;
 			var clock = new THREE.Clock();
@@ -106,7 +114,7 @@
 				scene = new THREE.Scene();
 
 				camera = new THREE.PerspectiveCamera( 55, window.innerWidth / window.innerHeight, 0.5, 3000000 );
-				camera.position.set( 0, 4000, 12000 );
+				camera.position.set( -4000, 4000, 12000 );
 
 				//camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 10000);
 				//camera.position.z = 50;
@@ -123,6 +131,10 @@
 				light.position.set( - 1, 1, - 1 );
 				scene.add( light );
 
+				var light = new THREE.DirectionalLight( 0xffffff, 0.5 );
+				light.position.set( - 1000, 10000, - 10000 );
+				//scene.add( light );				
+				
 				
 				//------------------ load skybox ------------------ //
 
@@ -198,38 +210,39 @@
 
 				// California
 
-				var californiaPts = [], vectors=[];
-					vectors[0] = new THREE.Vector3(247,-101);
-					vectors[1] = new THREE.Vector3(200,-70);
-					vectors[2] = new THREE.Vector3(148,-35);
-					vectors[3] = new THREE.Vector3(103,2);
-					vectors[4] = new THREE.Vector3(65,33);
-					vectors[5] = new THREE.Vector3(26,55);
-					vectors[6] = new THREE.Vector3(-10,73);
-					vectors[7] = new THREE.Vector3(-51,103);
-					vectors[8] = new THREE.Vector3(-69,145);
-					vectors[9] = new THREE.Vector3(-60,188);
-					vectors[10] = new THREE.Vector3(-87,203);
-					vectors[11] = new THREE.Vector3(-148,213);
-					vectors[12] = new THREE.Vector3(-181,186);
-					vectors[13] = new THREE.Vector3(-215,145);
-					vectors[14] = new THREE.Vector3(-238,110);
-					vectors[15] = new THREE.Vector3(-240,66);
-					vectors[16] = new THREE.Vector3(-235,17);
-					vectors[17] = new THREE.Vector3(-223,-18);
-					vectors[18] = new THREE.Vector3(-192,-51);
-					vectors[19] = new THREE.Vector3(-127,-87);
-					vectors[20] = new THREE.Vector3(-52,-91);
-					vectors[21] = new THREE.Vector3(-20,-94);
-					vectors[22] = new THREE.Vector3(21,-108);
-					vectors[23] = new THREE.Vector3(54,-124);
-					vectors[24] = new THREE.Vector3(87,-156);
-					vectors[25] = new THREE.Vector3(119,-187);
-					vectors[26] = new THREE.Vector3(149,-213);
-					vectors[27] = new THREE.Vector3(186,-214);
-					vectors[28] = new THREE.Vector3(203,-201);
-					vectors[29] = new THREE.Vector3(224,-155);
-				
+
+					vectors[0] = new THREE.Vector3(264,-98,0);
+					vectors[1] = new THREE.Vector3(206,-59,0);
+					vectors[2] = new THREE.Vector3(154,-28,0);
+					vectors[3] = new THREE.Vector3(108,13,0);
+					vectors[4] = new THREE.Vector3(65,33,0);
+					vectors[5] = new THREE.Vector3(23,45,0);
+					vectors[6] = new THREE.Vector3(-23,54,0);
+					vectors[7] = new THREE.Vector3(-56,73,0);
+					vectors[8] = new THREE.Vector3(-64,95,0);
+					vectors[9] = new THREE.Vector3(-38,135,0);
+					vectors[10] = new THREE.Vector3(-8,180,0);
+					vectors[11] = new THREE.Vector3(-85,194,0);
+					vectors[12] = new THREE.Vector3(-137,210,0);
+					vectors[13] = new THREE.Vector3(-181,186,0);
+					vectors[14] = new THREE.Vector3(-215,145,0);
+					vectors[15] = new THREE.Vector3(-230,110,0);
+					vectors[16] = new THREE.Vector3(-236,67,0);
+					vectors[17] = new THREE.Vector3(-239,14,0);
+					vectors[18] = new THREE.Vector3(-227,-28,0);
+					vectors[19] = new THREE.Vector3(-199,-84,0);
+					vectors[20] = new THREE.Vector3(-130,-123,0);
+					vectors[21] = new THREE.Vector3(-84,-143,0);
+					vectors[22] = new THREE.Vector3(-30,-155,0);
+					vectors[23] = new THREE.Vector3(13,-161,0);
+					vectors[24] = new THREE.Vector3(54,-178,0);
+					vectors[25] = new THREE.Vector3(81,-212,0);
+					vectors[26] = new THREE.Vector3(124,-243,0);
+					vectors[27] = new THREE.Vector3(198,-281,0);
+					vectors[28] = new THREE.Vector3(240,-270,0);
+					vectors[29] = new THREE.Vector3(261,-217,0);
+					vectors[30] = new THREE.Vector3(291,-143,0);
+
 				for ( var i = 0; i < vectors.length; i++ ) {
 
 					californiaPts.push( vectors[i] );
@@ -237,7 +250,7 @@
 				}				
 
 
-				for( var i = 0; i < californiaPts.length; i ++ ) californiaPts[ i ].multiplyScalar( 20 );
+				for( var i = 0; i < californiaPts.length; i ++ ) californiaPts[ i ].multiplyScalar( scale );
 
 				var californiaShape = new THREE.Shape( californiaPts );
 					//var geometry = new THREE.ShapeGeometry( californiaShape );
@@ -270,7 +283,7 @@
 				var mesh = new THREE.Mesh( geometry, material );
 
 				mesh.rotation.x = -Math.PI/2;
-				mesh.position.set( -450, -400, 1200 );
+				mesh.position.set( 0, -400, 0 );
 				mesh.add( water );
 				scene.add( mesh );
 							
@@ -282,12 +295,6 @@
 
 
 
-
-
-
-				var scale = 20;
-				var sqWidth = scale * 926; 
-				var sqHight = scale * 1081;
 	
 	
 				var squareShape = new THREE.Shape();
@@ -299,20 +306,20 @@
 
 
 				var CirclePath = new THREE.Path();
-				var biasX = 1300; var biasY = 2100;
-				var vector = new THREE.Vector2( vectors[0].x + sqWidth/2-biasX,  vectors[0].y + sqHight/2-biasY ).multiplyScalar( 1.1 );
+				var biasX = 0; var biasY = 0; var scaleBevelSize = 1;
+				var vector = new THREE.Vector2( vectors[0].x + sqWidth/2-biasX,  vectors[0].y + sqHight/2-biasY ).multiplyScalar( scaleBevelSize );
 				CirclePath.moveToVector(vector);
 				
 				for ( var i = 1; i < vectors.length; i++ ) {
 
-					var vector = new THREE.Vector2( vectors[i].x + sqWidth/2-biasX,  vectors[i].y + sqHight/2-biasY ).multiplyScalar( 1.1 );
+					var vector = new THREE.Vector2( vectors[i].x + sqWidth/2-biasX,  vectors[i].y + sqHight/2-biasY ).multiplyScalar( scaleBevelSize );
 					CirclePath.lineToVector(vector);
 
 				}					
 				CirclePath.closePath();
 				squareShape.holes.push(CirclePath);
 				
-				var Texture = new THREE.ImageUtils.loadTexture( 'textures/city3.png' );
+				var Texture = new THREE.ImageUtils.loadTexture( 'textures/city.png' );
 				Texture.wrapS = Texture.wrapT = THREE.RepeatWrapping;
 				Texture.repeat.set(1 / (sqWidth), 1 / ( sqHight));
 				var material = new THREE.MeshBasicMaterial({
@@ -346,7 +353,7 @@
 					curveSegments: 32,
 					bevelEnabled: true,
 					bevelThickness: heightShore,
-					bevelSize: 600,
+					bevelSize: 900,
 					material: 0, 
 					extrudeMaterial: 1 
 				};
@@ -404,13 +411,13 @@
 				//------------------ load Fountan ------------------ //				
 			
 			
-			initParticles( -2000, -320, 1000 );
+			initParticles( -2000, -320, 300, 500 );
 	
 			var geometry = new THREE.TorusGeometry( 120, 80, 36, 36 );
 				var material = new THREE.MeshPhongMaterial( { color: 0x00BFFF, shininess: 300 } );
 				var disk = new THREE.Mesh( geometry, material );
 					disk.rotation.x = Math.PI / 2;
-					disk.position.set( -2000, -350, 1000 );
+					disk.position.set( -2000, -350, 300 );
 					scene.add( disk );
 
 	
@@ -439,18 +446,154 @@
             var gridXZ = new THREE.GridHelper(gridLen, gridCount);
             gridXZ.setColors(new THREE.Color(0xD3D3D3), new THREE.Color(0xD3D3D3));
             gridXZ.position.set(0, 10, 0);
-            //scene.add(gridXZ);
+           // scene.add(gridXZ);
+			
+				//------------------ Второстепенные здания ------------------ //			
+			
+			grayBuildings();
+			
+				//------------------ ------------------ //			
 			
 
+			
+	///////////
+	// VIDEO //
+	///////////
+
+				EventsControls = new EventsControls( camera, renderer.domElement );
+
+				EventsControls.attachEvent( 'onclick', function () {
+						
+					if ( this.event.item == 0 )	video.play();
+					if ( this.event.item == 1 )	video.pause();
+					
+				});
 
 	
+	// create the video element
+	video = document.createElement( 'video' );
+	// video.id = 'video';
+	// video.type = ' video/ogg; codecs="theora, vorbis" ';
+	video.src = "videos/Selena Gomez & The Scene - Hit The Lights2_cut.mp4";
+	video.load(); // must call after setting/changing source
+	//video.play();
+	
+	// alternative method -- 
+	// create DIV in HTML:
+	// <video id="myVideo" autoplay style="display:none">
+	//		<source src="videos/sintel.ogv" type='video/ogg; codecs="theora, vorbis"'>
+	// </video>
+	// and set JS variable:
+	// video = document.getElementById( 'myVideo' );
+	
+	videoImage = document.createElement( 'canvas' );
+	videoImage.width = 480;
+	videoImage.height = 320;
+
+	videoImageContext = videoImage.getContext( '2d' );
+	// background color if no video present
+	videoImageContext.fillStyle = '#000000';
+	videoImageContext.fillRect( 0, 0, videoImage.width, videoImage.height );
+
+	videoTexture = new THREE.Texture( videoImage );
+	videoTexture.minFilter = THREE.LinearFilter;
+	videoTexture.magFilter = THREE.LinearFilter;
+		//videoTexture.offset.set( 0.3, 0.1 );
+	
+	var movieMaterial = new THREE.MeshBasicMaterial( { map: videoTexture, overdraw: true } ); // , side:THREE.DoubleSide
+	// the geometry on which the movie will be displayed;
+	// 		movie image will be scaled to fit these dimensions.
+	var koef = 5;
+	var movieGeometry = new THREE.PlaneGeometry( 220 * koef, 120 * koef, 4, 4 );
+	var movieScreen = new THREE.Mesh( movieGeometry, movieMaterial );
+	movieScreen.position.set(1000,1000,-3000);
+	movieScreen.rotation.y = -Math.PI / 6;
+	scene.add(movieScreen);
+	
+	var geometry = movieGeometry.clone();
+	var material = new THREE.MeshPhongMaterial( { color: 0x000F00, side: THREE.BackSide} )
+	var movieScreenBack = new THREE.Mesh( geometry, material );
+	movieScreenBack.position.copy( movieScreen.position );
+	movieScreenBack.rotation.y  =  movieScreen.rotation.y;
+	scene.add(movieScreenBack);			
+			
+	var pedestalTV = new THREE.Object3D();
+	var a = 5, b = 28, c = a + 23, d = b + 7;
+					vectors[0] = new THREE.Vector3(a,0,0);
+					vectors[1] = new THREE.Vector3(a,b,0);
+					vectors[2] = new THREE.Vector3(c,b,0);
+					vectors[3] = new THREE.Vector3(c,d,0);
+					vectors[4] = new THREE.Vector3(-c,d,0);
+					vectors[5] = new THREE.Vector3(-c,b,0);
+					vectors[6] = new THREE.Vector3(-a,b,0);
+					vectors[7] = new THREE.Vector3(-a,0,0);
+
+					var shape = new THREE.Shape(); 
+				shape.moveToVector( vectors[0].multiplyScalar( scale ) );
+				
+				for ( var i = 1; i < 8; i++ ) {
+
+					shape.lineToVector( vectors[i].multiplyScalar( scale ) );
+				}
+						shape.closePath();
+			
+			var extrudeSettings = { 
+					amount: 20, 
+					bevelSegments: 8, 
+					curveSegments: 32,
+					bevelEnabled: false
+				};
+				var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+				var material = new THREE.MeshLambertMaterial( { color: 0xA9A9A9 } );	
+				var mesh = new THREE.Mesh(geometry, material);
+
+				//mesh.rotation.x = -Math.PI/2;
+		mesh.position.z = -10;
+		//mesh.position.y = -d * scale;			
+		pedestalTV.add(mesh);			
+		
+			var material = new THREE.MeshLambertMaterial( { color: 0x3B3C3D } );	
+
+		var Texture =  THREE.ImageUtils.loadTexture( "textures/button_black_play.png" );
+			Texture.anisotropy = renderer.getMaxAnisotropy();		
+		var material1 = new THREE.MeshLambertMaterial( { map: Texture } );	
+
+		var mesh = new CylindricalMesh( 65, 30, 36, 1, [ material1, material ] );
+		mesh.rotation.x = Math.PI/2;	
+		mesh.position.set( -130, 625, 20 ); 		
+		pedestalTV.add( mesh );
+
+
+		var Texture =  THREE.ImageUtils.loadTexture( "textures/button_black_pause.png" );
+			Texture.anisotropy = renderer.getMaxAnisotropy();			
+		var material1 = new THREE.MeshLambertMaterial( { map: Texture } );	
+
+		var mesh = new CylindricalMesh( 65, 30, 36, 1, [ material1, material ] );
+		mesh.rotation.x = Math.PI/2;	
+		mesh.position.set( 130, 625, 20 ); 
+
+		pedestalTV.add( mesh );
+
+
+
+		
+		
+		
+		pedestalTV.add( mesh );
+
+	EventsControls.attach( mesh );		
+		
+		pedestalTV.position.copy( movieScreen.position );
+		pedestalTV.position.y = 0;
+		pedestalTV.rotation.y  =  movieScreen.rotation.y;	
+		scene.add( pedestalTV );					
+				
+/*
 	
             // Update cube map once the texture is loaded
             // to avoid extra payload when updating it on each frame
             treeTexture = THREE.ImageUtils.loadTexture(
                 'textures/tree.png'
-                //new THREE.UVMapping(),
-               // updateCubeMap
             );
 
             var tree = new THREE.Sprite(new THREE.SpriteMaterial({
@@ -522,24 +665,76 @@
 						scene.add(mesh);			
 
 				}	
-			
-
-
+	
 		
+*/
+	var jsonLoader = new THREE.JSONLoader();
+	jsonLoader.load( "models/trees/tree.js", function( geometry, materials ) {
+			var material = new THREE.MeshFaceMaterial( materials );
+			var tree = new THREE.Mesh( geometry, material );
+			tree.scale.set(200,300,200);
+			tree.position.set( 3000, 0, -3000 );			
+			scene.add( tree ); 
+		});
+
+	/*	
+				var geometry = new THREE.IcosahedronGeometry( 400 );
+				var material = new THREE.MeshLambertMaterial( { color: 0x006400, shading: THREE.FlatShading } );
+				var lowPolyTree = new THREE.Mesh( geometry, material );
+				lowPolyTree.position.set( -3000, 800, -2000 );
+				lowPolyTree.rotation.x = Math.PI/2;
+				scene.add( lowPolyTree );
+				
+				var geometry = new THREE.IcosahedronGeometry( 200 );
+				var material = new THREE.MeshLambertMaterial( { color: 0x006400, shading: THREE.FlatShading } );
+				var lowPolyTree = new THREE.Mesh( geometry, material );
+				lowPolyTree.position.set( -2500, 800, -2000 );
+				lowPolyTree.rotation.x = Math.PI/2;
+				scene.add( lowPolyTree );
+
+	
 				//------------------ load exterior ------------------ //			
 			var loader = new THREE.OBJMTLLoader(); // лоадер
-			loader.load( 'models/busStation/busStation.obj', 'models/busStation/busStation.mtl', 
-				function ( busStation ) {
-					busStation.scale.set(3, 3, 3);
-					busStation.position.set( -6500, 100, 0 );	
-					busStation.rotation.y = -Math.PI/2;					
-					scene.add( busStation );
+		
+
+		
+			loader.load( 'models/tree/tree11111.obj', 'models/tree/tree11111.mtl', 
+				function ( tree ) {
+					tree.scale.set(2, 2, 2);
+					tree.position.set( -3000, 0, -2000 );			
+					scene.add( tree );			
 				}
 			);		
-			
+		
+		
+			loader.load( 'models/tree/tree11112.obj', 'models/tree/tree11112.mtl', 
+				function ( tree ) {
+					tree.scale.set(2, 2, 2);
+					tree.position.set( -7000, 0, -2000 );			
+					scene.add( tree );			
+				}
+			);		
+		
+			loader.load( 'models/tree/tree11113.obj', 'models/tree/tree11113.mtl', 
+				function ( tree ) {
+					tree.scale.set(2, 2, 2);
+					tree.position.set( -8000, 0, -2000 );			
+					scene.add( tree );			
+				}
+			);		
+		
+			loader.load( 'models/tree/tree11114.obj', 'models/tree/tree11114.mtl', 
+				function ( tree ) {
+					tree.scale.set(2, 2, 2);
+					tree.position.set( -5000, 0, -2000 );			
+					scene.add( tree );			
+				}
+			);		
+		
+	
 
 				
-			
+/*			
 
 
 			loader.load( 'models/tent/tent.obj', 'models/tent/tent.mtl', 
@@ -703,6 +898,17 @@
 					//scene.add( bridge );
 				}
 			);	
+			
+			loader.load( 'models/busStation/busStation.obj', 'models/busStation/busStation.mtl', 
+				function ( busStation ) {
+					busStation.scale.set(3, 3, 3);
+					busStation.position.set( -6500, 100, 0 );	
+					busStation.rotation.y = -Math.PI/2;					
+					scene.add( busStation );
+				}
+			);		
+	
+			
   newmtl название_материала1   # Объявление очередного материала
   # Цвета
   Ka 1,000 1,000 0,000         # Цвет окружающего освещения (желтый)
@@ -729,7 +935,16 @@
 
 			//
 
-        function initParticles( x, y, z ) {
+	function addModelToScene( geometry, materials ) 
+{
+			var material = new THREE.MeshFaceMaterial( materials );
+			var model = new THREE.Mesh( geometry, material );
+			model.scale.set(200,150,200);
+			scene.add( model );
+	
+}			
+			
+        function initParticles( x, y, z, count ) {
         	particleGroup = new SPE.Group({
         		texture: THREE.ImageUtils.loadTexture('textures/smokeparticle.png'),
         		maxAge: 2
@@ -747,12 +962,11 @@
 
         		colorStart: new THREE.Color('white'),
         		colorEnd: new THREE.Color('red'),
-
-        		sizeStart: 1,
-        		sizeEnd: 1,
+        		sizeStart: 50,
+        		sizeEnd: 50,
 				opacityStart: 1,
                 opacityEnd: 1,
-        		particleCount: 3000
+        		particleCount: count
         	});
 
         	particleGroup.addEmitter( emitter );
@@ -762,7 +976,29 @@
         		//'Total particles: ' + emitter.particleCount;
         }			
 			
-			
+	function CylindricalMesh( 
+		Radius, Height, sgmRadius, sgmHeight, materials ) {
+
+		var Cylinder = new THREE.Object3D();
+		var geometry = new THREE.CylinderGeometry( Radius, Radius, 
+		Height, sgmRadius, sgmHeight, true );
+		var herd = new THREE.Mesh( geometry, materials[1] );
+		Cylinder.add( herd );
+
+		var obverse = new THREE.Mesh( new THREE.CircleGeometry( 
+		Radius, sgmRadius ), materials[0] );	
+		obverse.rotation.x = -Math.PI/2;					   
+		obverse.position.y = Height / 2;
+		Cylinder.add( obverse );
+		EventsControls.attach( obverse );	
+		return Cylinder;
+
+}
+
+CylindricalMesh.prototype = Object.create( CylindricalMesh.prototype );
+
+
+	
 			function animate() {
 
 				requestAnimationFrame( animate );
@@ -776,17 +1012,261 @@
 
 				water.material.uniforms.time.value += 1.0 / 60.0;
 				controls.update();
+				EventsControls.update();
 				water.render();		
 				
 				renderParticle( clock.getDelta() );				
 				renderer.render( scene, camera );
 
+				if ( video.readyState === video.HAVE_ENOUGH_DATA ) {
+				
+						videoImageContext.drawImage( video, 0, 0 );
+						if ( videoTexture ) 
+							videoTexture.needsUpdate = true;
+				}			
+				
 
 			}
 			
 			function renderParticle( dt ) {
 				particleGroup.tick( dt );
-			}			
+			}
+
+			function grayBuildings() {
+			
+					vectors[0] = new THREE.Vector3(236,274);
+					vectors[1] = new THREE.Vector3(266,253);
+					vectors[2] = new THREE.Vector3(244,217);
+					vectors[3] = new THREE.Vector3(280,194);
+					vectors[4] = new THREE.Vector3(306,231);
+					vectors[5] = new THREE.Vector3(335,211);
+					vectors[6] = new THREE.Vector3(321,178);
+					vectors[7] = new THREE.Vector3(355,159);
+					vectors[8] = new THREE.Vector3(388,212);
+					vectors[9] = new THREE.Vector3(360,231);
+					vectors[10] = new THREE.Vector3(375,264);
+					vectors[11] = new THREE.Vector3(339,284);
+					vectors[12] = new THREE.Vector3(321,254);
+					vectors[13] = new THREE.Vector3(280,279);
+					vectors[14] = new THREE.Vector3(298,313);
+					vectors[15] = new THREE.Vector3(260,336);
+					vectors[16] = new THREE.Vector3(237,306);
+					vectors[17] = new THREE.Vector3(210,321);
+					vectors[18] = new THREE.Vector3(176,268);
+					vectors[19] = new THREE.Vector3(212,243);
+
+				var shape = new THREE.Shape(); 
+				shape.moveToVector( vectors[0].multiplyScalar( scale ) );
+				
+				for ( var i = 1; i < 20; i++ ) {
+
+					shape.lineToVector( vectors[i].multiplyScalar( scale ) );
+				}
+						shape.closePath();
+				
+
+					
+				var heightShore = 40, amount = 1060;
+				var extrudeSettings = { 
+					amount: amount, 
+					bevelSegments: 8, 
+					curveSegments: 32,
+					bevelEnabled: false
+				};
+				
+				var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+				var material = new THREE.MeshLambertMaterial( { color: 0xA9A9A9 } );			
+				var mesh = new THREE.Mesh(geometry, material);
+				mesh.rotation.x = -Math.PI/2;
+				scene.add(mesh);			
+
+				
+					vectors[0] = new THREE.Vector3(-102,272,0);
+					vectors[1] = new THREE.Vector3(-41,378,0);
+					vectors[2] = new THREE.Vector3(-80,405,0);
+					vectors[3] = new THREE.Vector3(-22,510,0);
+					vectors[4] = new THREE.Vector3(-77,509,0);
+					vectors[5] = new THREE.Vector3(-126,430,0);
+					vectors[6] = new THREE.Vector3(-134,435,0);
+					vectors[7] = new THREE.Vector3(-195,328,0);
+	
+				var shape = new THREE.Shape(); 
+				shape.moveToVector( vectors[0].multiplyScalar( scale ) );
+				
+				for ( var i = 1; i < 8; i++ ) {
+
+					shape.lineToVector( vectors[i].multiplyScalar( scale ) );
+				}
+						shape.closePath();
+
+				var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+				var material = new THREE.MeshLambertMaterial( { color: 0xA9A9A9 } );
+				var mesh = new THREE.Mesh(geometry, material);
+				mesh.rotation.x = -Math.PI/2;
+				scene.add(mesh);	
+
+					vectors[0] = new THREE.Vector3(-102,272,0);
+					vectors[1] = new THREE.Vector3(-41,378,0);
+					vectors[2] = new THREE.Vector3(-80,405,0);
+					vectors[3] = new THREE.Vector3(-22,510,0);
+					vectors[0] = new THREE.Vector3(21,-239,0);
+					vectors[1] = new THREE.Vector3(11,-243,0);
+					vectors[2] = new THREE.Vector3(-10,-230,0);
+					vectors[3] = new THREE.Vector3(-14,-237,0);
+					vectors[4] = new THREE.Vector3(-25,-230,0);
+					vectors[5] = new THREE.Vector3(-29,-212,0);
+					vectors[6] = new THREE.Vector3(-17,-187,0);
+					vectors[7] = new THREE.Vector3(0,-183,0);
+					vectors[8] = new THREE.Vector3(11,-189,0);
+					vectors[9] = new THREE.Vector3(13,-196,0);
+					vectors[10] = new THREE.Vector3(42,-212,0);
+					vectors[11] = new THREE.Vector3(49,-230,0);
+					vectors[12] = new THREE.Vector3(61,-228,0);
+					vectors[13] = new THREE.Vector3(86,-310,0);
+					vectors[14] = new THREE.Vector3(111,-305,0);
+					vectors[15] = new THREE.Vector3(125,-346,0);
+					vectors[16] = new THREE.Vector3(153,-362,0);
+					vectors[17] = new THREE.Vector3(159,-353,0);
+					vectors[18] = new THREE.Vector3(178,-367,0);
+					vectors[19] = new THREE.Vector3(175,-387,0);
+					vectors[20] = new THREE.Vector3(166,-400,0);
+					vectors[21] = new THREE.Vector3(152,-411,0);
+					vectors[22] = new THREE.Vector3(134,-403,0);
+					vectors[23] = new THREE.Vector3(139,-394,0);
+					vectors[24] = new THREE.Vector3(110,-379,0);
+					vectors[25] = new THREE.Vector3(100,-389,0);
+					vectors[26] = new THREE.Vector3(86,-344,0);
+					vectors[27] = new THREE.Vector3(68,-333,0);
+					vectors[28] = new THREE.Vector3(0,-346,0);
+					vectors[29] = new THREE.Vector3(-11,-294,0);
+					vectors[30] = new THREE.Vector3(31,-276,0);
+
+				var shape = new THREE.Shape(); 
+				shape.moveToVector( vectors[0].multiplyScalar( scale ) );
+				
+				for ( var i = 1; i < 31; i++ ) {
+
+					shape.lineToVector( vectors[i].multiplyScalar( scale ) );
+				}
+						shape.closePath();
+
+				var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+				var material = new THREE.MeshLambertMaterial( { color: 0xA9A9A9 } );				
+				var mesh = new THREE.Mesh(geometry, material);
+				mesh.rotation.x = -Math.PI/2;
+				scene.add(mesh);	
+				
+					vectors[0] = new THREE.Vector3(200,-304,0);
+					vectors[1] = new THREE.Vector3(188,-322,0);
+					vectors[2] = new THREE.Vector3(210,-336,0);
+					vectors[3] = new THREE.Vector3(223,-319,0);
+
+				var shape = new THREE.Shape(); 
+				shape.moveToVector( vectors[0].multiplyScalar( scale ) );
+				
+				for ( var i = 1; i < 4; i++ ) {
+
+					shape.lineToVector( vectors[i].multiplyScalar( scale ) );
+				}
+						shape.closePath();
+
+				var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+				var material = new THREE.MeshLambertMaterial( { color: 0xA9A9A9 } );		
+				var mesh = new THREE.Mesh(geometry, material);
+
+				mesh.rotation.x = -Math.PI/2;
+				scene.add(mesh);					
+	
+					vectors[0] = new THREE.Vector3(228,128,0);
+					vectors[1] = new THREE.Vector3(216,108,0);
+					vectors[2] = new THREE.Vector3(245,91,0);
+					vectors[3] = new THREE.Vector3(257,111,0);
+				var shape = new THREE.Shape(); 
+				shape.moveToVector( vectors[0].multiplyScalar( scale ) );
+				
+				for ( var i = 1; i < 4; i++ ) {
+
+					shape.lineToVector( vectors[i].multiplyScalar( scale ) );
+				}
+						shape.closePath();
+
+				var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+				var material = new THREE.MeshLambertMaterial( { color: 0xA9A9A9 } );				
+				var mesh = new THREE.Mesh(geometry, material);
+
+				mesh.rotation.x = -Math.PI/2;
+				scene.add(mesh);	
+	
+					vectors[0] = new THREE.Vector3(-285,6,0);
+					vectors[1] = new THREE.Vector3(-267,6,0);
+					vectors[2] = new THREE.Vector3(-267,42,0);
+					vectors[3] = new THREE.Vector3(-286,42,0);	
+
+				var shape = new THREE.Shape(); 
+				shape.moveToVector( vectors[0].multiplyScalar( scale ) );
+				
+				for ( var i = 1; i < 4; i++ ) {
+
+					shape.lineToVector( vectors[i].multiplyScalar( scale ) );
+				}
+						shape.closePath();
+
+				var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+				var material = new THREE.MeshLambertMaterial( { color: 0xA9A9A9 } );
+				var mesh = new THREE.Mesh(geometry, material);
+
+				mesh.rotation.x = -Math.PI/2;
+				scene.add(mesh);	
+
+					vectors[0] = new THREE.Vector3(350,-267,0);
+					vectors[1] = new THREE.Vector3(369,-235,0);
+					vectors[2] = new THREE.Vector3(510,-316,0);
+					vectors[3] = new THREE.Vector3(510,-359,0);
+
+				var shape = new THREE.Shape(); 
+				shape.moveToVector( vectors[0].multiplyScalar( scale ) );
+				
+				for ( var i = 1; i < 4; i++ ) {
+
+					shape.lineToVector( vectors[i].multiplyScalar( scale ) );
+				}
+						shape.closePath();
+
+				var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+
+				var material = new THREE.MeshLambertMaterial( { color: 0xA9A9A9 } );
+				
+				var mesh = new THREE.Mesh(geometry, material);
+				mesh.rotation.x = -Math.PI/2;
+				scene.add(mesh);	
+	
+					//
+					
+					vectors[0] = new THREE.Vector3(432,-126,0);
+					vectors[1] = new THREE.Vector3(450,-94,0);
+					vectors[2] = new THREE.Vector3(510,-127,0);
+					vectors[3] = new THREE.Vector3(510,-175,0);
+
+	
+				var shape = new THREE.Shape(); 
+				shape.moveToVector( vectors[0].multiplyScalar( scale ) );
+				
+				for ( var i = 1; i < 4; i++ ) {
+
+					shape.lineToVector( vectors[i].multiplyScalar( scale ) );
+				}
+						shape.closePath();
+
+				var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+				var material = new THREE.MeshLambertMaterial( { color: 0xA9A9A9 } );	
+				var mesh = new THREE.Mesh(geometry, material);
+
+				mesh.rotation.x = -Math.PI/2;
+				scene.add(mesh);
+		
+			
+			}
+			
 
 		</script>
 	</body>

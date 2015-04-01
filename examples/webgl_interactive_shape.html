@@ -15,7 +15,7 @@
 			}
 			#info {
 				position: absolute;
-				top: 0px; width: 100%;
+				top: 0px; width: 200px;
 				padding: 5px;
 				z-index:0;
 			}		
@@ -37,7 +37,7 @@
 
 
 			var camera, scene, renderer, controls;
-				var vectors = [];
+				var vectors=[];
 			
 			
 			init();
@@ -46,7 +46,7 @@
 			function init() {
 
 				renderer = new THREE.WebGLRenderer( { antialias: true } ); 
-				renderer.setClearColor( 0x6495ED );
+				renderer.setClearColor( 0xFFFFFF );
 				renderer.setSize( window.innerWidth, window.innerHeight );				
 				document.body.appendChild( renderer.domElement );
 
@@ -84,8 +84,8 @@
 				document.body.appendChild( showResult );				
 				//
 				
-				camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 2000 );
-				camera.position.set( 0, 0, 1000 );
+				camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 3000 );
+				camera.position.set( 0, 0, 2100 );
 				camera.lookAt( new THREE.Vector3( 0, 0, 0 ) );
 
 				scene = new THREE.Scene();
@@ -100,11 +100,12 @@
 
 				// world
 				
-				var Texture = new THREE.ImageUtils.loadTexture( 'textures/brightlake.png' );
+				var Texture = new THREE.ImageUtils.loadTexture( 'textures/city2.png' );				
 				Texture.wrapS = Texture.wrapT = THREE.RepeatWrapping;
 
 				var Material = new THREE.MeshBasicMaterial( { map: Texture, side: THREE.DoubleSide } );
-				var Geometry = new THREE.PlaneGeometry( 512, 512, 1, 1 );
+			//var Material = new THREE.MeshBasicMaterial( { color:  0xcccccc, side: THREE.DoubleSide } );				
+				var Geometry = new THREE.PlaneGeometry( 1024, 1024, 1, 1 );
 
 				var checkerboard = new THREE.Mesh( Geometry, Material );
 				scene.add( checkerboard );
@@ -141,44 +142,27 @@
 
 				});
 
+					vectors[0] = new THREE.Vector3(-25,-441,0);
+					vectors[1] = new THREE.Vector3(58,-439,0);
+					vectors[2] = new THREE.Vector3(55,-192,0);
+					vectors[3] = new THREE.Vector3(221,-192,0);
+					vectors[4] = new THREE.Vector3(224,-93,0);
+					vectors[5] = new THREE.Vector3(-200,-91,0);
+					vectors[6] = new THREE.Vector3(-194,-193,0);
+					vectors[7] = new THREE.Vector3(-51,-190,0);
+					vectors[8] = new THREE.Vector3(-64,95,0);
+					vectors[9] = new THREE.Vector3(-38,135,0);
+					vectors[10] = new THREE.Vector3(-8,180,0);
+					vectors[11] = new THREE.Vector3(-85,194,0);
+					vectors[12] = new THREE.Vector3(-137,210,0);
 
-				vectors[0] = new THREE.Vector3(247,-101,0);
-				vectors[1] = new THREE.Vector3(200,-70,0);
-				vectors[2] = new THREE.Vector3(148,-35,0);
-				vectors[3] = new THREE.Vector3(103,2,0);
-				vectors[4] = new THREE.Vector3(65,33,0);
-				vectors[5] = new THREE.Vector3(26,55,0);
-				vectors[6] = new THREE.Vector3(-10,73,0);
-				vectors[7] = new THREE.Vector3(-51,103,0);
-				vectors[8] = new THREE.Vector3(-69,145,0);
-				vectors[9] = new THREE.Vector3(-60,188,0);
-				vectors[10] = new THREE.Vector3(-87,203,0);
-				vectors[11] = new THREE.Vector3(-148,213,0);
-				vectors[12] = new THREE.Vector3(-181,186,0);
-				vectors[13] = new THREE.Vector3(-215,145,0);
-				vectors[14] = new THREE.Vector3(-238,110,0);
-				vectors[15] = new THREE.Vector3(-240,66,0);
-				vectors[16] = new THREE.Vector3(-235,17,0);
-				vectors[17] = new THREE.Vector3(-223,-18,0);
-				vectors[18] = new THREE.Vector3(-192,-51,0);
-				vectors[19] = new THREE.Vector3(-127,-87,0);
-				vectors[20] = new THREE.Vector3(-52,-91,0);
-				vectors[21] = new THREE.Vector3(-20,-94,0);
-				vectors[22] = new THREE.Vector3(21,-108,0);
-				vectors[23] = new THREE.Vector3(54,-124,0);
-				vectors[24] = new THREE.Vector3(87,-156,0);
-				vectors[25] = new THREE.Vector3(119,-187,0);
-				vectors[26] = new THREE.Vector3(149,-213,0);
-				vectors[27] = new THREE.Vector3(186,-214,0);
-				vectors[28] = new THREE.Vector3(203,-201,0);
-				vectors[29] = new THREE.Vector3(224,-155,0);			
-				
+
 				//for ( var i = 0; i < 30; i++ ) {
-				//	vectors[i] = new THREE.Vector3(  i * 10-100, -200, 0 ); 
+					//vectors[i] = new THREE.Vector3(  i * 15-100, -200, 0 ); 
 				//}				
 				
-				var Circmaterial = new THREE.MeshBasicMaterial( {color: 0x00000f} );
-				var Circgeometry = new THREE.CircleGeometry(4, 32 );	
+				var Circmaterial = new THREE.MeshBasicMaterial( {color: 0xff000f} );
+				var Circgeometry = new THREE.CircleGeometry(8, 32 );	
 
 
 				for ( var i = 0; i < vectors.length; i++ ) {
@@ -199,8 +183,69 @@
 				console.log('------------------------------------');				
 				console.log(sssr);
 				
+				
+				/*
+				
 				//
+				
+					var californiaPts0 = []; 
+				for ( var i = 0; i < vectors.length; i++ ) {
 
+					var vector = vectors[i].clone();
+					californiaPts0.push( vector.multiplyScalar(1.4) );
+
+				}
+				
+				var californiaShape = new THREE.Shape( californiaPts0 );
+
+					var geometry = new THREE.ShapeGeometry( californiaShape );
+
+					var mesh = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial( { color: 0x464646, side: THREE.DoubleSide } ) );
+					mesh.position.set( 45, 0, 0 );
+					//mesh.rotation.set( rx, ry, rz );
+					//mesh.scale.set( s, s, s );
+					scene.add( mesh );				
+				
+				
+					var californiaPts = []; 
+				for ( var i = 0; i < vectors.length; i++ ) {
+
+					var vector = vectors[i].clone();
+					californiaPts.push( vector.multiplyScalar(1.2) );
+
+				}
+				
+				var californiaShape = new THREE.Shape( californiaPts );
+
+					var geometry = new THREE.ShapeGeometry( californiaShape );
+
+					var mesh = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial( { color: 0x424242, side: THREE.DoubleSide } ) );
+					mesh.position.set( 25, 0, 0 );
+					//mesh.rotation.set( rx, ry, rz );
+					//mesh.scale.set( s, s, s );
+					scene.add( mesh );
+		
+
+				var californiaPts2 = []; 
+				for ( var i = 0; i < vectors.length; i++ ) {
+
+					var vector = vectors[i].clone();
+					californiaPts2.push( vector.multiplyScalar(1) );
+
+				}
+				
+				var californiaShape = new THREE.Shape( californiaPts2 );
+
+					var geometry = new THREE.ShapeGeometry( californiaShape );
+
+					var mesh = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial( { color: 0x363636, side: THREE.DoubleSide } ) );
+					mesh.position.set( 0, 0, 0 );
+					//mesh.rotation.set( rx, ry, rz );
+					//mesh.scale.set( s, s, s );
+					scene.add( mesh );					
+
+				*/
+				
 				window.addEventListener( 'resize', onWindowResize, false );
 
 
