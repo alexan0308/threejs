@@ -414,7 +414,8 @@
 			initParticles( -2000, -320, 300, 500 );
 	
 			var geometry = new THREE.TorusGeometry( 120, 80, 36, 36 );
-				var material = new THREE.MeshPhongMaterial( { color: 0x00BFFF, shininess: 300 } );
+			//	var material = new THREE.MeshPhongMaterial( { color: 0x00BFFF, shininess: 300 } );
+				var material = new THREE.MeshLambertMaterial( { color: 0xA0522D } );			
 				var disk = new THREE.Mesh( geometry, material );
 					disk.rotation.x = Math.PI / 2;
 					disk.position.set( -2000, -350, 300 );
@@ -463,9 +464,14 @@
 				EventsControls = new EventsControls( camera, renderer.domElement );
 
 				EventsControls.attachEvent( 'onclick', function () {
-						
+				
+				scene.getObjectByName( "key" + String( this.event.item ) ).position.z = 0;	
+			
 					if ( this.event.item == 0 )	video.play();
 					if ( this.event.item == 1 )	video.pause();
+					
+					setTimeout( 'scene.getObjectByName( "key' + String( this.event.item ) + '" ).position.z = 20', 100 );
+
 					
 				});
 
@@ -559,10 +565,13 @@
 		var material1 = new THREE.MeshLambertMaterial( { map: Texture } );	
 
 		var mesh = new CylindricalMesh( 65, 30, 36, 1, [ material1, material ] );
+		mesh.name = 'key' + String( 0 );
 		mesh.rotation.x = Math.PI/2;	
 		mesh.position.set( -130, 625, 20 ); 		
 		pedestalTV.add( mesh );
-
+		
+		mesh.name = 'key' + String( 0 );
+		//EventsControls.attach( mesh );	
 
 		var Texture =  THREE.ImageUtils.loadTexture( "textures/button_black_pause.png" );
 			Texture.anisotropy = renderer.getMaxAnisotropy();			
@@ -574,14 +583,8 @@
 
 		pedestalTV.add( mesh );
 
-
-
-		
-		
-		
-		pedestalTV.add( mesh );
-
-	EventsControls.attach( mesh );		
+		mesh.name = 'key' + String( 1 );
+		//EventsControls.attach( mesh );		
 		
 		pedestalTV.position.copy( movieScreen.position );
 		pedestalTV.position.y = 0;
@@ -672,32 +675,163 @@
 	jsonLoader.load( "models/trees/tree.js", function( geometry, materials ) {
 			var material = new THREE.MeshFaceMaterial( materials );
 			var tree = new THREE.Mesh( geometry, material );
-			tree.scale.set(200,300,200);
-			tree.position.set( 3000, 0, -3000 );			
+			tree.scale.set(200,200,200);
+			tree.position.set( 3000, 0, -3000 );	
+
+	var spriteMaterial = new THREE.SpriteMaterial( 
+	{ 
+		map: new THREE.ImageUtils.loadTexture( 'textures/tree3.png' ), 
+		useScreenCoordinates: false, 
+		color: 0xffaa00, transparent: false, blending: THREE.AdditiveBlending
+	});
+	var sprite = new THREE.Sprite( spriteMaterial );
+	sprite.position.y = 3;
+	sprite.scale.set(5, 5, 1.0);
+	//tree.add(sprite); // this centers the glow at the mesh
+
+			
 			scene.add( tree ); 
 		});
 
-	/*	
-				var geometry = new THREE.IcosahedronGeometry( 400 );
-				var material = new THREE.MeshLambertMaterial( { color: 0x006400, shading: THREE.FlatShading } );
-				var lowPolyTree = new THREE.Mesh( geometry, material );
-				lowPolyTree.position.set( -3000, 800, -2000 );
-				lowPolyTree.rotation.x = Math.PI/2;
-				scene.add( lowPolyTree );
-				
-				var geometry = new THREE.IcosahedronGeometry( 200 );
-				var material = new THREE.MeshLambertMaterial( { color: 0x006400, shading: THREE.FlatShading } );
-				var lowPolyTree = new THREE.Mesh( geometry, material );
-				lowPolyTree.position.set( -2500, 800, -2000 );
-				lowPolyTree.rotation.x = Math.PI/2;
-				scene.add( lowPolyTree );
 
 	
 				//------------------ load exterior ------------------ //			
 			var loader = new THREE.OBJMTLLoader(); // лоадер
 		
+			loader.load( 'models/Bench/Bench2.obj', 'models/Bench/Bench2.mtl', 
+				function ( Bench2 ) {
+				
+				
+				
+			var material = new THREE.MeshLambertMaterial( { color: 0xA0522D } );	
+			
+				Bench2.traverse( function ( child ) {
 
+						if ( child instanceof THREE.Mesh ) {
+
+							//child.material.map = texture;
+							child.material = material;
+						}
+
+					} );
+
+					
+					Bench2.scale.set(1/2, 1/2, 1/2);
+					Bench2.position.set( 2000, 250, -500 );
+					Bench2.material = material;		
+					Bench2.rotation.y = Math.PI+Math.PI/3;	
+					Bench2.rotation.x = -Math.PI/36;						
+					scene.add( Bench2 );
 		
+
+					var mesh = Bench2.clone();
+					scene.add( mesh );
+					mesh.position.set( 3000, 250, 0 );
+									
+			
+				}
+			);	
+			
+			loader.load( 'models/Bench/Bench3.obj', 'models/Bench/Bench3.mtl', 
+				function ( Bench3 ) {
+			var material = new THREE.MeshLambertMaterial( { color: 0x8B4513 } );	
+
+				Bench3.traverse( function ( child ) {
+
+						if ( child instanceof THREE.Mesh ) {
+
+							//child.material.map = texture;
+							child.material = material;
+						}
+
+					} );
+			
+					Bench3.scale.set(1/2, 1/2, 1/2);
+					Bench3.material = material;
+					Bench3.position.set( 4000, 500, 500 );	
+					Bench3.rotation.y = Math.PI/2+Math.PI/3;	
+					scene.add( Bench3 );			
+					
+					var mesh = Bench3.clone();
+					scene.add( mesh );
+					mesh.position.set( 5000, 500, 1000 );
+					scene.add( mesh );			
+				}
+			);
+
+			loader.load( 'models/outdoorBench/outdoorBench.obj', 'models/outdoorBench/outdoorBench.mtl', 
+				function ( outdoorBench ) {
+					outdoorBench.scale.set(3, 3, 3);
+					outdoorBench.position.set( 1000, 0, -1000 );
+					outdoorBench.rotation.y = Math.PI+Math.PI/3;					
+					scene.add( outdoorBench );				
+				}
+			);		
+				
+		/*
+			loader.load( 'models/outdoorBench/outdoorBench.obj', 'models/outdoorBench/outdoorBench.mtl', 
+				function ( outdoorBench ) {
+					outdoorBench.scale.set(2, 2, 2);
+					outdoorBench.position.set( 2000, 0, -500 );
+					outdoorBench.rotation.y = Math.PI+Math.PI/3;					
+					scene.add( outdoorBench );
+
+					var mesh = outdoorBench.clone();
+					scene.add( mesh );
+					mesh.position.set( 3000, 0, 0 );
+
+					var mesh = outdoorBench.clone();
+					scene.add( mesh );
+					mesh.position.set( 4000, 0, 500 );	
+
+					var mesh = outdoorBench.clone();
+					scene.add( mesh );
+					mesh.position.set( 5000, 0, 1000 );
+					
+				}
+			);		
+	
+	
+	
+	
+			loader.load( 'models/arbor/arbor.obj', 'models/arbor/arbor.mtl', 
+				function ( arbor ) {
+					arbor.position.set( -500, 0, -1500 );	
+					scene.add( arbor );
+				}
+			);
+		*/
+		
+			loader.load( 'models/arbor/arbor2.obj', 'models/arbor/arbor2.mtl', 
+				function ( arbor2 ) {
+			var material = new THREE.MeshLambertMaterial( { color: 0x8B4513 } );					
+					arbor2.traverse( function ( child ) {
+
+						if ( child instanceof THREE.Mesh ) {
+
+							//child.material.map = texture;
+							child.material = material;
+						}
+
+					} );			
+				
+					arbor2.scale.set(1/4, 1/4, 1/4);
+					arbor2.position.set( -500, 0, -1500 );			
+					scene.add( arbor2 );			
+				}
+			);
+
+			
+			loader.load( 'models/tent/tent.obj', 'models/tent/tent.mtl', 
+				function ( tent ) {
+					tent.scale.set(3, 3, 3);
+					tent.position.set( -1500, 300, -2000 );			
+					scene.add( tent );
+				}
+			);	
+
+	
+/*		
 			loader.load( 'models/tree/tree11111.obj', 'models/tree/tree11111.mtl', 
 				function ( tree ) {
 					tree.scale.set(2, 2, 2);
@@ -706,7 +840,8 @@
 				}
 			);		
 		
-		
+			
+	
 			loader.load( 'models/tree/tree11112.obj', 'models/tree/tree11112.mtl', 
 				function ( tree ) {
 					tree.scale.set(2, 2, 2);
@@ -737,13 +872,7 @@
 /*			
 
 
-			loader.load( 'models/tent/tent.obj', 'models/tent/tent.mtl', 
-				function ( tent ) {
-					tent.scale.set(3, 3, 3);
-					tent.position.set( -1500, 300, -2000 );			
-					scene.add( tent );
-				}
-			);	
+
 			
 		
 			
@@ -765,12 +894,7 @@
 		
 
 	
-			loader.load( 'models/arbor/arbor.obj', 'models/arbor/arbor.mtl', 
-				function ( arbor ) {
-					arbor.position.set( -500, 0, -1500 );	
-					scene.add( arbor );
-				}
-			);
+
 			
 
 			loader.load( 'models/playground/playground.obj', 'models/playground/playground.mtl', 
@@ -793,27 +917,7 @@
 			
 
 
-			loader.load( 'models/outdoorBench/outdoorBench.obj', 'models/outdoorBench/outdoorBench.mtl', 
-				function ( outdoorBench ) {
-					outdoorBench.scale.set(2, 2, 2);
-					outdoorBench.position.set( 2000, 0, -500 );
-					outdoorBench.rotation.y = Math.PI+Math.PI/3;					
-					scene.add( outdoorBench );
 
-					var mesh = outdoorBench.clone();
-					scene.add( mesh );
-					mesh.position.set( 3000, 0, 0 );
-
-					var mesh = outdoorBench.clone();
-					scene.add( mesh );
-					mesh.position.set( 4000, 0, 500 );	
-
-					var mesh = outdoorBench.clone();
-					scene.add( mesh );
-					mesh.position.set( 5000, 0, 1000 );
-					
-				}
-			);	
 			
 
 			loader.load( 'models/urn/urn.obj', 'models/urn/urn.mtl', 

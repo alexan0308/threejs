@@ -192,6 +192,8 @@
 				Plane = new THREE.Mesh( geometry, material );
 				Plane.position.set( 0, -400, 500 ); Plane.rotation.x = -Math.PI/2;
 				scene.add( Plane );
+				
+				edges = new THREE.FaceNormalsHelper( Plane, 20, 0x00ff00, 1 ); scene.add( edges );
 
 			}
 
@@ -212,6 +214,7 @@
 					var angle = Math.PI / 12;
 
 					modifier.set( direction, axis, angle ).modify( Plane.geometry );
+					edges.update();
 				}
 			}
 			
