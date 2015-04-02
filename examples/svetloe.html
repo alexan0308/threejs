@@ -415,7 +415,7 @@
 	
 			var geometry = new THREE.TorusGeometry( 120, 80, 36, 36 );
 			//	var material = new THREE.MeshPhongMaterial( { color: 0x00BFFF, shininess: 300 } );
-				var material = new THREE.MeshLambertMaterial( { color: 0xA0522D } );			
+				var material = new THREE.MeshPhongMaterial( { color: 0xA0522D, shininess: 300 } );			
 				var disk = new THREE.Mesh( geometry, material );
 					disk.rotation.x = Math.PI / 2;
 					disk.position.set( -2000, -350, 300 );
@@ -698,7 +698,7 @@
 				//------------------ load exterior ------------------ //			
 			var loader = new THREE.OBJMTLLoader(); // лоадер
 		
-			loader.load( 'models/Bench/Bench2.obj', 'models/Bench/Bench2.mtl', 
+			loader.load( 'models/bench/Bench2.obj', 'models/bench/Bench2.mtl', 
 				function ( Bench2 ) {
 				
 				
@@ -732,7 +732,7 @@
 				}
 			);	
 			
-			loader.load( 'models/Bench/Bench3.obj', 'models/Bench/Bench3.mtl', 
+			loader.load( 'models/bench/Bench3.obj', 'models/bench/Bench3.mtl', 
 				function ( Bench3 ) {
 			var material = new THREE.MeshLambertMaterial( { color: 0x8B4513 } );	
 
