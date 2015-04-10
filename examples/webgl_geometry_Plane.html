@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - geometry - terrain</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				color: #61443e;
+				font-family:Monospace;
+				font-size:13px;
+				text-align:center;
+
+				background-color: #bfd1e5;
+				margin: 0px;
+				overflow: hidden;
+			}
+
+			#info {
+				position: absolute;
+				top: 0px; width: 100%;
+				padding: 5px;
+			}
+
+			a {
+
+				color: #a06851;
+			}
+
+		</style>
+	</head>
+	<body>
+
+		<div id="container"><br /><br /><br /><br /><br />Generating world...</div>
+		<div id="info"><a href="http://threejs.org" target="_blank">three.js</a> - webgl terrain raycasting demo</div>
+
+		<script src="../build/three.min.js"></script>
+
+		<script src="js/controls/OrbitControls.js"></script>
+
+		<script src="js/Detector.js"></script>
+		<script src="js/libs/stats.min.js"></script>
+
+		<script>
+
+			if ( ! Detector.webgl ) {
+
+				Detector.addGetWebGLMessage();
+				document.getElementById( 'container' ).innerHTML = "";
+
+			}
+
+			var container, stats;
+
+			var camera, controls, scene, renderer;
+
+			var mesh, texture;
+
+			var worldWidth = 256, worldDepth = 256,
+			worldHalfWidth = worldWidth / 2, worldHalfDepth = worldDepth / 2;
+
+			var clock = new THREE.Clock();
+
+			var helper;
+
+
+			init();
+			animate();
+
+			function init() {
+
+				container = document.getElementById( 'container' );
+
+				camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 10000 );
+
+				scene = new THREE.Scene();
+
+					// lights
+				
+				var light = new THREE.HemisphereLight( 0xffffbb, 0x080820, 1 );
+				light.position.set( - 1, 1, - 1 );
+				scene.add( light );
+				
+				light = new THREE.DirectionalLight( 0xffffff );
+				light.position.set( 0, 1000, 2000 );
+				scene.add( light );
+
+				light = new THREE.DirectionalLight( 0xffffff );
+				light.position.set( 0, -1000, -2000 );
+				scene.add( light );
+
+					//
+				
+				controls = new THREE.OrbitControls(camera);
+				controls.center.set( 0.0, 100.0, 0.0 );
+				controls.userPanSpeed = 100;
+
+				camera.position.y =  controls.center.y + 700;
+				camera.position.x = -400;
+
+	var img = new Image();
+		img.onload = function () {
+		  
+			//get height data from img
+			var data = getHeightData(img);
+		  
+			// plane
+			
+				var geometry = new THREE.PlaneBufferGeometry( 1024, 1024, 1024-1, 1024-1 );
+				geometry.applyMatrix( new THREE.Matrix4().makeRotationX( - Math.PI / 2 ) );
+
+				var vertices = geometry.attributes.position.array;
+
+				for ( var i = 0, j = 0, l = vertices.length; i < l; i ++, j += 3 ) {
+
+					vertices[ j + 1 ] = data[ i ];
+
+				}
+
+				geometry.computeFaceNormals();	
+			
+			var texture = THREE.ImageUtils.loadTexture( 'textures/city.png' );
+						
+			var material = new THREE.MeshLambertMaterial( { map: texture } );
+			plane = new THREE.Mesh( geometry, material );
+			plane.position.set( 0, -60, 0 );			 
+			scene.add(plane);
+			
+		//	edges = new THREE.FaceNormalsHelper( plane, 200, 0x00ff00, 1 ); scene.add( edges );
+		   
+		};
+		// load img source
+		img.src = "textures/cityheightmap2.png";
+
+
+
+				renderer = new THREE.WebGLRenderer();
+				renderer.setClearColor( 0xbfd1e5 );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+				container.innerHTML = "";
+
+				container.appendChild( renderer.domElement );
+
+				stats = new Stats();
+				stats.domElement.style.position = 'absolute';
+				stats.domElement.style.top = '0px';
+				container.appendChild( stats.domElement );
+
+				//
+				
+				var vectors = [];
+				vectors[0] = new THREE.Vector3(456,-144,0);
+				vectors[1] = new THREE.Vector3(391,-46,0);
+				vectors[2] = new THREE.Vector3(77,-223,0);
+				vectors[3] = new THREE.Vector3(138,-338,0);
+
+				vectors[4] = new THREE.Vector3(356,-194,0);				
+				vectors[3] = new THREE.Vector3(456,-144,0);
+				vectors[2] = new THREE.Vector3(391,-46,0);
+				vectors[1] = new THREE.Vector3(77,-223,0);
+				vectors[0] = new THREE.Vector3(138,-338,0);				
+				
+				//vectors[0] = new THREE.Vector3(128*3,-128*2,0);
+				//vectors[1] = new THREE.Vector3(128*3,0,0);
+				//vectors[2] = new THREE.Vector3(0,0,0);
+				//vectors[3] = new THREE.Vector3(0,-128,0);				
+				
+				var H = 30; var sizeX = 256; var count = 2.3;
+				
+				var vec1 = new THREE.Vector3();
+					vec1.subVectors( vectors[1], vectors[0] );
+	
+				var vec2 = new THREE.Vector3( 1, 0, 0 ); var vec3 = new THREE.Vector3( 0, 1, 0 );
+				var angle = vec1.angleTo( vec2 );
+				
+				var sign = signum( vec1.dot( vec3 ) );
+				
+				var len = vec1.length();
+				
+
+				var geometry = new THREE.PlaneBufferGeometry( len, H, 1, 1 );
+				geometry.applyMatrix( new THREE.Matrix4().makeRotationY( -sign * angle ) );
+				
+				var texture = THREE.ImageUtils.loadTexture( 'textures/crate.gif' );
+					texture.wrapS = THREE.RepeatWrapping;
+					texture.wrapT = THREE.RepeatWrapping; 
+
+					//var col = count; 
+					var k0 = len / ( count * sizeX );
+					var absSize =  k0 * sizeX;
+					texture.repeat.set( count, 1 );
+	
+				var material = new THREE.MeshLambertMaterial( { map: texture, side: THREE.DoubleSide } );
+				plane = new THREE.Mesh( geometry, material );
+			
+				plane.position.set( ( vectors[0].x + vectors[1].x ) / 2, 20, ( vectors[0].y + vectors[1].y ) / 2 );
+
+				scene.add(plane);		
+
+				
+				var bias = ( len - Math.round( count ) * sizeX * k0 ) / absSize;
+
+
+					//var bias = ( len - Math.round( count * len/sizeX ) ) / sizeX;
+				console.log( bias );
+				console.log( 1 - bias );
+				
+				
+
+				
+				var vec1 = new THREE.Vector3();
+					vec1.subVectors( vectors[2], vectors[1] );
+	
+				var vec2 = new THREE.Vector3( 1, 0, 0 ); var vec3 = new THREE.Vector3( 0, 1, 0 );
+				var angle = vec1.angleTo( vec2 );
+				
+				var len = vec1.length();
+				var sign = signum( vec1.dot( vec3 ) );				
+
+				var geometry = new THREE.PlaneBufferGeometry( len, H, 1, 1 );
+				geometry.applyMatrix( new THREE.Matrix4().makeRotationY( -sign * angle ) );
+				
+				var texture = THREE.ImageUtils.loadTexture( 'textures/crate.gif' );
+					texture.wrapS = THREE.RepeatWrapping;
+					texture.wrapT = THREE.RepeatWrapping; 
+
+					var count = len / ( k0 * sizeX );
+					texture.repeat.set( count, 1 );
+				texture.offset.set( bias, 0 );	
+					
+					
+				var material = new THREE.MeshLambertMaterial( { map: texture, side: THREE.DoubleSide } );
+				plane = new THREE.Mesh( geometry, material );
+			
+				plane.position.set( ( vectors[1].x + vectors[2].x ) / 2, 20, ( vectors[1].y + vectors[2].y ) / 2 );
+
+				scene.add(plane);					
+				
+				var bias2 = ( len - Math.round( count ) * sizeX * k0 ) / absSize;
+
+
+					//var bias = ( len - Math.round( count * len/sizeX ) ) / sizeX;
+				console.log( bias2 );
+				if ( bias2 < 0 ) bias2 = - bias2;
+
+				
+
+
+				
+				var vec1 = new THREE.Vector3();
+					vec1.subVectors( vectors[3], vectors[2] );
+	
+				var vec2 = new THREE.Vector3( 1, 0, 0 ); var vec3 = new THREE.Vector3( 0, 1, 0 );
+				var angle = vec1.angleTo( vec2 );
+				
+				var len = vec1.length();
+				var sign = signum( vec1.dot( vec3 ) );					
+
+				var geometry = new THREE.PlaneBufferGeometry( len, H, 1, 1 );
+				geometry.applyMatrix( new THREE.Matrix4().makeRotationY( -sign * angle ) );
+				
+				var texture = THREE.ImageUtils.loadTexture( 'textures/crate.gif' );
+					texture.wrapS = THREE.RepeatWrapping;
+					texture.wrapT = THREE.RepeatWrapping; 
+
+				texture.repeat.set( len / ( k0 * sizeX ), 1 );
+				texture.offset.set( bias + bias2 , 0 );	
+				
+				var material = new THREE.MeshLambertMaterial( { map: texture, side: THREE.DoubleSide } );
+				plane = new THREE.Mesh( geometry, material );
+			
+				plane.position.set( ( vectors[2].x + vectors[3].x ) / 2, 20, ( vectors[2].y + vectors[3].y ) / 2 );
+
+				scene.add(plane);					
+				var bias3 = ( len - Math.round( count ) * sizeX * k0 ) / absSize;				
+	
+
+	
+	
+				var vec1 = new THREE.Vector3();
+					vec1.subVectors( vectors[4], vectors[3] );
+	
+				var vec2 = new THREE.Vector3( 1, 0, 0 ); var vec3 = new THREE.Vector3( 0, 1, 0 );
+				var angle = vec1.angleTo( vec2 );
+				
+				var len = vec1.length();
+				var sign = signum( vec1.dot( vec3 ) );					
+
+				var geometry = new THREE.PlaneBufferGeometry( len, H, 1, 1 );
+				geometry.applyMatrix( new THREE.Matrix4().makeRotationY( -sign * angle ) );
+				
+				var texture = THREE.ImageUtils.loadTexture( 'textures/crate.gif' );
+					texture.wrapS = THREE.RepeatWrapping;
+					texture.wrapT = THREE.RepeatWrapping; 
+
+				texture.repeat.set( len / ( k0 * sizeX ), 1 );
+				texture.offset.set( bias + bias2 + bias3 , 0 );	
+				
+				var material = new THREE.MeshLambertMaterial( { map: texture, side: THREE.DoubleSide } );
+				plane = new THREE.Mesh( geometry, material );
+			
+				plane.position.set( ( vectors[3].x + vectors[4].x ) / 2, 20, ( vectors[3].y + vectors[4].y ) / 2 );
+
+				scene.add(plane);	
+
+
+				
+				
+				addLine( vectors[0].x, 0, vectors[0].y );
+				addLine( vectors[1].x, 0, vectors[1].y );			
+				addLine( vectors[2].x, 0, vectors[2].y );
+				addLine( vectors[3].x, 0, vectors[3].y );
+
+				
+				window.addEventListener( 'resize', onWindowResize, false );
+
+				vectors[4] = new THREE.Vector3(156,404,0);				
+				vectors[3] = new THREE.Vector3(356,144,0);
+				vectors[2] = new THREE.Vector3(291,46,0);
+				vectors[1] = new THREE.Vector3(77,223,0);
+				vectors[0] = new THREE.Vector3(138,338,0);		
+				
+				var H = 30; var sizeX = 256; var count = 2.3;
+				//prism( vectors, H, sizeX, count, 'textures/crate.gif', false, 0.7 );
+				prism( vectors, 20, sizeX, 12, 'textures/zabor2.png', true, 0.99 );				
+				
+			}
+
+	function signum( x ) {
+
+		if ( x >= 0 ) { sig = 1 } else { sig = -1; }
+		return sig;
+	
+	}
+		
+		
+	function prism( vectors, H, sizeX, Count, texturePath, transparent, opacity ) {	
+				
+			var bias = 0; var k0, absSize;
+			var count = Count;
+			
+			for ( var i = 0; i < vectors.length-1; i++ ) {
+			
+				var vec1 = new THREE.Vector3();
+					vec1.subVectors( vectors[i+1], vectors[i] );
+	
+				var vec2 = new THREE.Vector3( 1, 0, 0 ); var vec3 = new THREE.Vector3( 0, 1, 0 );
+				var angle = vec1.angleTo( vec2 );
+				
+				var sign = signum( vec1.dot( vec3 ) );
+				
+				var len = vec1.length();
+				
+
+				var geometry = new THREE.PlaneBufferGeometry( len, H, 1, 1 );
+				geometry.applyMatrix( new THREE.Matrix4().makeRotationY( -sign * angle ) );
+				
+				var texture = THREE.ImageUtils.loadTexture( texturePath );
+					texture.wrapS = THREE.RepeatWrapping;
+					texture.wrapT = THREE.RepeatWrapping; 
+					texture.anisotropy = renderer.getMaxAnisotropy();
+
+					if ( i == 0 ) { 
+						k0 = len / ( count * sizeX ); 
+						absSize =  k0 * sizeX;
+					}
+					else {
+					
+						count = len / ( k0 * sizeX );
+						
+					}
+					
+					texture.repeat.set( count, 1 );
+					texture.offset.set( bias , 0 );	
+				
+				var material = new THREE.MeshLambertMaterial( { map: texture, side: THREE.DoubleSide, transparent: transparent, opacity: opacity } );
+				plane = new THREE.Mesh( geometry, material );
+			
+				plane.position.set( ( vectors[i].x + vectors[i+1].x ) / 2, 20, ( vectors[i].y + vectors[i+1].y ) / 2 );
+
+				scene.add(plane);		
+
+				var bias2 = ( len - Math.round( count ) * sizeX * k0 ) / absSize;
+				bias = bias + bias2;
+				
+			}	
+				
+		}		
+				
+				
+
+
+		
+	function addLine( x, y, z ) {
+
+			var geometry = new THREE.Geometry;
+			var material = new THREE.LineBasicMaterial( { color: 0x8B4726 } );
+
+			geometry.vertices.push( new THREE.Vector3( x, -100, z ) ); 
+			geometry.vertices.push( new THREE.Vector3( x, 200, z ) ); 
+			
+			var line = new THREE.Line( geometry, material );
+			scene.add( line );
+
+
+	}	
+
+			
+			//return array with height data from img
+			function getHeightData(img,scale) {
+			  
+			 if (scale == undefined) scale=1;
+			  
+				var canvas = document.createElement( 'canvas' );
+				canvas.width = img.width;
+				canvas.height = img.height;
+				var context = canvas.getContext( '2d' );
+			 
+				var size = img.width * img.height;
+				var data = new Float32Array( size );
+			 
+				context.drawImage(img,0,0);
+			 
+				for ( var i = 0; i < size; i ++ ) {
+					data[i] = 0
+				}
+			 
+				var imgd = context.getImageData(0, 0, img.width, img.height);
+				var pix = imgd.data;
+			 
+				var j=0;
+				for (var i = 0; i<pix.length; i +=4) {
+					var all = pix[i]+pix[i+1]+pix[i+2];
+					data[j++] = all/(12*scale);
+				}
+				 
+				return data;
+			}			
+						
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+
+			//
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+
+				render();
+				stats.update();
+
+			}
+
+			function render() {
+
+				controls.update( clock.getDelta() );
+				renderer.render( scene, camera );
+
+			}
+
+
+		</script>
+
+	</body>
+</html>

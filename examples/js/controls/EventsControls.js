@@ -16,6 +16,9 @@
 // this.event.faceIndex - index of the intersected face
 // this.event.indices - indices of vertices comprising the intersected face
  
+THREE.Object3D.userDataParent = null;
+THREE.Mesh.userDataParent = null;
+ 
 EventsControls = function ( camera, domElement ) {
 
 	var _this = this;
@@ -82,7 +85,7 @@ EventsControls = function ( camera, domElement ) {
 			this.objects.push( object );
 
 			for ( var i = 0; i < object.children.length; i++ ) {
-				object.children[i].userData.parent = object;		
+				object.children[i].userDataParent = object;		
 			}
 		}
 
@@ -135,8 +138,8 @@ EventsControls = function ( camera, domElement ) {
 		_DisplaceFocused = object;
 		_this.event.item = _this.objects.indexOf( object );
 
-		if ( object.userData.parent ) {
-			this.focused = object.userData.parent;
+		if ( object.userDataParent ) {
+			this.focused = object.userDataParent;
 			this.focusedChild = _DisplaceFocused;
 			this.previous.copy( this.focused.position );
 		}
@@ -160,8 +163,8 @@ EventsControls = function ( camera, domElement ) {
 
 		_DisplacemouseOvered = object;
 		_this.event.item = _this.objects.indexOf( object );
-		if ( object.userData.parent ) {
-			this.mouseOvered = object.userData.parent;
+		if ( object.userDataParent ) {
+			this.mouseOvered = object.userDataParent;
 			this.mouseOveredChild = _DisplacemouseOvered;
 		}
 		else {

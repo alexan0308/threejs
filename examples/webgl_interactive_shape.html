@@ -46,7 +46,7 @@
 			function init() {
 
 				renderer = new THREE.WebGLRenderer( { antialias: true } ); 
-				renderer.setClearColor( 0xFFFFFF );
+				//renderer.setClearColor( 0xFFFFFF );
 				renderer.setSize( window.innerWidth, window.innerHeight );				
 				document.body.appendChild( renderer.domElement );
 
@@ -85,8 +85,8 @@
 				//
 				
 				camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 3000 );
-				camera.position.set( 0, 0, 2100 );
-				camera.lookAt( new THREE.Vector3( 0, 0, 0 ) );
+				camera.position.set( 0, 0, 1100 );
+				camera.lookAt( new THREE.Vector3( 0, -200, 0 ) );
 
 				scene = new THREE.Scene();
 
@@ -104,7 +104,7 @@
 				Texture.wrapS = Texture.wrapT = THREE.RepeatWrapping;
 
 				var Material = new THREE.MeshBasicMaterial( { map: Texture, side: THREE.DoubleSide } );
-			//var Material = new THREE.MeshBasicMaterial( { color:  0xcccccc, side: THREE.DoubleSide } );				
+			//var Material = new THREE.MeshBasicMaterial( { color:  0xFFFFFF, side: THREE.DoubleSide } );				
 				var Geometry = new THREE.PlaneGeometry( 1024, 1024, 1, 1 );
 
 				var checkerboard = new THREE.Mesh( Geometry, Material );
@@ -142,33 +142,26 @@
 
 				});
 
-					vectors[0] = new THREE.Vector3(-25,-441,0);
-					vectors[1] = new THREE.Vector3(58,-439,0);
-					vectors[2] = new THREE.Vector3(55,-192,0);
-					vectors[3] = new THREE.Vector3(221,-192,0);
-					vectors[4] = new THREE.Vector3(224,-93,0);
-					vectors[5] = new THREE.Vector3(-200,-91,0);
-					vectors[6] = new THREE.Vector3(-194,-193,0);
-					vectors[7] = new THREE.Vector3(-51,-190,0);
-					vectors[8] = new THREE.Vector3(-64,95,0);
-					vectors[9] = new THREE.Vector3(-38,135,0);
-					vectors[10] = new THREE.Vector3(-8,180,0);
-					vectors[11] = new THREE.Vector3(-85,194,0);
-					vectors[12] = new THREE.Vector3(-137,210,0);
+					vectors[0] = new THREE.Vector3(-211,309,0);
+					vectors[1] = new THREE.Vector3(-125,253,0);
+					vectors[2] = new THREE.Vector3(-109,246,0);
+					vectors[3] = new THREE.Vector3(-93,245,0);
+					vectors[4] = new THREE.Vector3(-78,252,0);
 
 
-				//for ( var i = 0; i < 30; i++ ) {
-					//vectors[i] = new THREE.Vector3(  i * 15-100, -200, 0 ); 
-				//}				
+
+				for ( var i = 0; i < 26; i++ ) {
+					vectors[i] = new THREE.Vector3(  i * 19-200, -300, 0 ); 
+				}				
 				
 				var Circmaterial = new THREE.MeshBasicMaterial( {color: 0xff000f} );
-				var Circgeometry = new THREE.CircleGeometry(8, 32 );	
+				var Circgeometry = new THREE.CircleGeometry(4, 32 );	
 
 
 				for ( var i = 0; i < vectors.length; i++ ) {
 
 					var krugok = new THREE.Mesh(Circgeometry, Circmaterial);
-					krugok.position.copy( vectors[i] );
+					krugok.position.copy( vectors[i] );krugok.position.z = 0;
 					scene.add( krugok ); 
 					EventsControls.attach( krugok );
 
@@ -184,7 +177,7 @@
 				console.log(sssr);
 				
 				
-				/*
+				
 				
 				//
 				
@@ -204,7 +197,7 @@
 					mesh.position.set( 45, 0, 0 );
 					//mesh.rotation.set( rx, ry, rz );
 					//mesh.scale.set( s, s, s );
-					scene.add( mesh );				
+					//scene.add( mesh );				
 				
 				
 					var californiaPts = []; 
@@ -223,7 +216,7 @@
 					mesh.position.set( 25, 0, 0 );
 					//mesh.rotation.set( rx, ry, rz );
 					//mesh.scale.set( s, s, s );
-					scene.add( mesh );
+					//scene.add( mesh );
 		
 
 				var californiaPts2 = []; 
@@ -239,12 +232,60 @@
 					var geometry = new THREE.ShapeGeometry( californiaShape );
 
 					var mesh = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial( { color: 0x363636, side: THREE.DoubleSide } ) );
+					var mesh = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial( { color: 0x000000, side: THREE.DoubleSide } ) );					
+					
 					mesh.position.set( 0, 0, 0 );
 					//mesh.rotation.set( rx, ry, rz );
 					//mesh.scale.set( s, s, s );
-					scene.add( mesh );					
+					//scene.add( mesh );					
 
-				*/
+					
+					vectors[0] = new THREE.Vector3(-39,-126,0);
+					vectors[1] = new THREE.Vector3(-68,-127,0);
+					vectors[2] = new THREE.Vector3(-94,-123,0);
+					vectors[3] = new THREE.Vector3(-115,-110,0);
+					vectors[4] = new THREE.Vector3(-138,-97,0);
+					vectors[5] = new THREE.Vector3(-158,-81,0);
+					vectors[6] = new THREE.Vector3(-177,-68,0);
+					vectors[7] = new THREE.Vector3(-192,-50,0);
+					vectors[8] = new THREE.Vector3(-202,-27,0);
+					vectors[9] = new THREE.Vector3(-213,-5,0);
+					vectors[10] = new THREE.Vector3(-215,23,0);
+					vectors[11] = new THREE.Vector3(-213,46,0);
+					vectors[12] = new THREE.Vector3(-208,66,0);
+					vectors[13] = new THREE.Vector3(-205,91,0);
+					vectors[14] = new THREE.Vector3(-193,114,0);
+					vectors[15] = new THREE.Vector3(-183,134,0);
+					vectors[16] = new THREE.Vector3(-168,153,0);
+					vectors[17] = new THREE.Vector3(-152,174,0);
+					vectors[18] = new THREE.Vector3(-135,192,0);
+					vectors[19] = new THREE.Vector3(-113,203,0);
+					vectors[20] = new THREE.Vector3(-96,191,0);
+					vectors[21] = new THREE.Vector3(-70,191,0);
+					vectors[22] = new THREE.Vector3(-52,181,0);
+					vectors[23] = new THREE.Vector3(-39,168,0);
+					
+				var arrSpline = [];
+				
+				for ( var i = 0; i < 24; i++ ) {
+
+					var vector = vectors[i].clone();
+					arrSpline.push( vector );
+
+				}		
+				
+				spline = new THREE.SplineCurve3( arrSpline );
+				var tubegeo = new THREE.TubeGeometry( spline, 128, 1, 12 );
+				var material = new THREE.MeshLambertMaterial( { 
+						color: 0x9b2d30,
+				} );
+				
+				var tube = new THREE.Mesh( tubegeo, material );
+				scene.add( tube );
+
+
+					
+				
 				
 				window.addEventListener( 'resize', onWindowResize, false );
 

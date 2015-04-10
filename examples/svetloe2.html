@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Озеро Светлое</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				color: #000;
+				font-family:Monospace;
+				font-size:13px;
+				margin: 0px;
+				overflow: hidden;
+			}
+
+			#info {
+				position: absolute;
+				top: 0px; width: 100%;
+				text-align:center;
+				padding: 5px;
+			}
+
+			a {
+
+				color: #a06851;
+			}
+
+		</style>
+	</head>
+	<body>
+
+		<div id="info">Озеро Светлое - прибрежная территория</div>
+
+		<script src="../build/three.min.js"></script>
+
+		<script src="js/controls/OrbitControls.js"></script>
+		<script src="js/Mirror.js"></script>
+		<script src="js/WaterShader.js"></script>
+
+		<script src="js/Detector.js"></script>
+		<script src="js/libs/stats.min.js"></script>
+
+		<script src="js/loaders/MTLLoader.js"></script>
+		<script src="js/loaders/OBJMTLLoader.js"></script>
+		
+		<!-- ShaderParticles -->
+		<script type="text/javascript" src="js/ShaderParticleEngine/ShaderParticleUtils.js"></script>
+		<script type="text/javascript" src="js/ShaderParticleEngine/ShaderParticleGroup.js"></script>
+		<script type="text/javascript" src="js/ShaderParticleEngine/ShaderParticleEmitter.js"></script>	
+
+		<script src="js/controls/EventsControls.js"></script>		
+	
+		<script>
+
+
+			THREE.Path.prototype.moveToVector = function ( vector ) {
+
+				this.moveTo( vector.x, vector.y );
+
+			};
+
+			THREE.Path.prototype.lineToVector = function ( vector ) {
+
+				this.lineTo( vector.x, vector.y );
+
+			};
+					
+		
+			if ( ! Detector.webgl ) {
+
+				Detector.addGetWebGLMessage();
+				document.getElementById( 'container' ).innerHTML = "";
+
+			}
+
+			var container, stats;
+			var camera, scene, renderer;
+
+			var californiaPts = [], vectors=[];
+
+				var scale = 20;
+				var sqWidth = scale * 1024; 
+				var sqHight = scale * 1024;			
+			
+			        // Used in initParticles()
+			var emitter, particleGroup;
+			var clock = new THREE.Clock();
+			
+			var parameters = {
+				width: 2000,
+				height: 2000,
+				widthSegments: 250,
+				heightSegments: 250,
+				depth: 1500,
+				param: 4,
+				filterparam: 1
+			}
+			
+			var waterNormals;
+
+			init();
+			animate();
+
+			function init() {
+
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+				renderer = new THREE.WebGLRenderer();
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				container.appendChild( renderer.domElement );
+
+				scene = new THREE.Scene();
+
+				camera = new THREE.PerspectiveCamera( 55, window.innerWidth / window.innerHeight, 0.5, 3000000 );
+				camera.position.set( -4000, 4000, 12000 );
+
+				//camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 10000);
+				//camera.position.z = 50;
+				//camera.lookAt( scene.position );
+			
+				controls = new THREE.OrbitControls( camera, renderer.domElement );
+				controls.userPan = false;
+				controls.userPanSpeed = 0.0;
+				controls.maxDistance = 25000.0;
+				controls.maxPolarAngle = Math.PI * 0.495;
+				controls.center.set( 0, 500, 0 );
+
+				var light = new THREE.HemisphereLight( 0xffffbb, 0x080820, 1 );
+				light.position.set( - 1, 1, - 1 );
+				scene.add( light );
+
+				var light = new THREE.DirectionalLight( 0xffffff, 0.5 );
+				light.position.set( - 1000, 10000, - 10000 );
+				//scene.add( light );				
+				
+				
+				//------------------ load skybox ------------------ //
+
+				
+				var cubeMap = new THREE.CubeTexture( [] );
+				cubeMap.format = THREE.RGBFormat;
+				cubeMap.flipY = false;
+
+				var loader = new THREE.ImageLoader();
+				loader.load( 'textures/skyboxsun25degtest.png', function ( image ) {
+
+					var getSide = function ( x, y ) {
+
+						var size = 1024;
+
+						var canvas = document.createElement( 'canvas' );
+						canvas.width = size;
+						canvas.height = size;
+
+						var context = canvas.getContext( '2d' );
+						context.drawImage( image, - x * size, - y * size );
+
+						return canvas;
+
+					};
+
+					cubeMap.images[ 0 ] = getSide( 2, 1 ); // px
+					cubeMap.images[ 1 ] = getSide( 0, 1 ); // nx
+					cubeMap.images[ 2 ] = getSide( 1, 0 ); // py
+					cubeMap.images[ 3 ] = getSide( 1, 2 ); // ny
+					cubeMap.images[ 4 ] = getSide( 1, 1 ); // pz
+					cubeMap.images[ 5 ] = getSide( 3, 1 ); // nz
+					cubeMap.needsUpdate = true;
+
+				} );
+
+				var cubeShader = THREE.ShaderLib['cube'];
+				cubeShader.uniforms['tCube'].value = cubeMap;
+
+				var skyBoxMaterial = new THREE.ShaderMaterial( {
+					fragmentShader: cubeShader.fragmentShader,
+					vertexShader: cubeShader.vertexShader,
+					uniforms: cubeShader.uniforms,
+					depthWrite: false,
+					side: THREE.BackSide
+				});
+
+				var skyBox = new THREE.Mesh(
+					new THREE.BoxGeometry( 1000000, 1000000, 1000000 ),
+					skyBoxMaterial
+				);
+				
+				scene.add( skyBox );
+
+
+				//------------------ load bright lake ------------------ //
+				
+				
+				waterNormals = new THREE.ImageUtils.loadTexture( 'textures/waternormals.jpg' );
+				waterNormals.wrapS = waterNormals.wrapT = THREE.RepeatWrapping; 
+
+				water = new THREE.Water( renderer, camera, scene, {
+					textureWidth: 512, 
+					textureHeight: 512,
+					waterNormals: waterNormals,
+					alpha: 	1.0,
+					sunDirection: light.position.clone().normalize(),
+					sunColor: 0xffffff,
+					waterColor: 0x001e0f,
+					distortionScale: 50.0,
+				} );
+
+
+				// California
+
+
+					vectors[0] = new THREE.Vector3(264,-98,0);
+					vectors[1] = new THREE.Vector3(206,-59,0);
+					vectors[2] = new THREE.Vector3(154,-28,0);
+					vectors[3] = new THREE.Vector3(108,13,0);
+					vectors[4] = new THREE.Vector3(65,33,0);
+					vectors[5] = new THREE.Vector3(23,45,0);
+					vectors[6] = new THREE.Vector3(-23,54,0);
+					vectors[7] = new THREE.Vector3(-56,73,0);
+					vectors[8] = new THREE.Vector3(-64,95,0);
+					vectors[9] = new THREE.Vector3(-38,135,0);
+					vectors[10] = new THREE.Vector3(-8,180,0);
+					vectors[11] = new THREE.Vector3(-85,194,0);
+					vectors[12] = new THREE.Vector3(-137,210,0);
+					vectors[13] = new THREE.Vector3(-181,186,0);
+					vectors[14] = new THREE.Vector3(-215,145,0);
+					vectors[15] = new THREE.Vector3(-230,110,0);
+					vectors[16] = new THREE.Vector3(-236,67,0);
+					vectors[17] = new THREE.Vector3(-239,14,0);
+					vectors[18] = new THREE.Vector3(-227,-28,0);
+					vectors[19] = new THREE.Vector3(-199,-84,0);
+					vectors[20] = new THREE.Vector3(-130,-123,0);
+					vectors[21] = new THREE.Vector3(-84,-143,0);
+					vectors[22] = new THREE.Vector3(-30,-155,0);
+					vectors[23] = new THREE.Vector3(13,-161,0);
+					vectors[24] = new THREE.Vector3(54,-178,0);
+					vectors[25] = new THREE.Vector3(81,-212,0);
+					vectors[26] = new THREE.Vector3(124,-243,0);
+					vectors[27] = new THREE.Vector3(198,-281,0);
+					vectors[28] = new THREE.Vector3(240,-270,0);
+					vectors[29] = new THREE.Vector3(261,-217,0);
+					vectors[30] = new THREE.Vector3(291,-143,0);
+
+				for ( var i = 0; i < vectors.length; i++ ) {
+
+					californiaPts.push( vectors[i] );
+
+				}				
+
+
+				for( var i = 0; i < californiaPts.length; i ++ ) californiaPts[ i ].multiplyScalar( scale );
+
+				var californiaShape = new THREE.Shape( californiaPts );
+					//var geometry = new THREE.ShapeGeometry( californiaShape );
+					//var mirrorMesh = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { side: THREE.DoubleSide } ) );
+					
+					//mirrorMesh.position.set( 0, 0, 0 );
+					//mirrorMesh.rotation.x = -Math.PI/2;
+					//mirrorMesh.rotation.z = -Math.PI/2;					
+
+				var extrMaterial = new THREE.MeshBasicMaterial({
+						color: 0xffffff,
+						side: THREE.DoubleSide
+				});				
+
+				var extrudeSettings = { 
+					amount: 16, 
+					bevelSegments: 8, 
+					curveSegments: 32, 
+					material: 0, 
+					extrudeMaterial: 1 
+				};
+
+				var geometry = new THREE.ExtrudeGeometry( californiaShape, extrudeSettings );
+				water.material.transparent = false;
+				var materials = [water.material, extrMaterial];
+				var material = new THREE.MeshFaceMaterial(materials);
+				
+				//var material = new THREE.MeshBasicMaterial( { color: 0x0000ff, side: THREE.DoubleSide, transparent: false, opacity: 0.5 } );
+
+				var mesh = new THREE.Mesh( geometry, material );
+
+				mesh.rotation.x = -Math.PI/2;
+				mesh.position.set( 0, -400, 0 );
+				mesh.add( water );
+				scene.add( mesh );
+							
+				
+				//mirrorMesh.add( water );
+				//mirrorMesh.rotation.x = - Math.PI * 0.5
+				//mirrorMesh.position.set( -4000, 20, 0 );
+				//scene.add( mirrorMesh );
+
+
+
+	
+	
+				var squareShape = new THREE.Shape();
+				squareShape.moveTo(0, 0);
+				squareShape.lineTo(sqWidth, 0); // <=========== counterClockwise widing order.
+				squareShape.lineTo(sqWidth, sqHight);
+				squareShape.lineTo(0, sqHight);
+				squareShape.closePath();
+
+
+				var CirclePath = new THREE.Path();
+				var biasX = 0; var biasY = 0; var scaleBevelSize = 1;
+				var vector = new THREE.Vector2( vectors[0].x + sqWidth/2-biasX,  vectors[0].y + sqHight/2-biasY ).multiplyScalar( scaleBevelSize );
+				CirclePath.moveToVector(vector);
+				
+				for ( var i = 1; i < vectors.length; i++ ) {
+
+					var vector = new THREE.Vector2( vectors[i].x + sqWidth/2-biasX,  vectors[i].y + sqHight/2-biasY ).multiplyScalar( scaleBevelSize );
+					CirclePath.lineToVector(vector);
+
+				}					
+				CirclePath.closePath();
+				squareShape.holes.push(CirclePath);
+				
+				var Texture = new THREE.ImageUtils.loadTexture( 'textures/city.png' );
+				Texture.wrapS = Texture.wrapT = THREE.RepeatWrapping;
+				Texture.repeat.set(1 / (sqWidth), 1 / ( sqHight));
+				var material = new THREE.MeshBasicMaterial({
+					map: Texture
+				});
+
+
+				var extrMaterial = new THREE.MeshLambertMaterial({
+						color: 0x6B8E23,
+						side: THREE.DoubleSide
+				});
+
+					
+				var ExtrTexture = THREE.ImageUtils.loadTexture( 'textures/extrmtr.jpg' );
+				ExtrTexture.wrapS = ExtrTexture.wrapT= THREE.RepeatWrapping;
+
+				ExtrTexture.offset.set( 0, 0.2 );
+				ExtrTexture.repeat.set( 0, 0.0001 );
+
+				var extrMaterial = new THREE.MeshBasicMaterial( { map: ExtrTexture } );
+	
+									
+				
+				var materials = [material, extrMaterial];
+				var material = new THREE.MeshFaceMaterial(materials);
+					
+				var heightShore = 400, amount = 160;
+				var extrudeSettings = { 
+					amount: amount, 
+					bevelSegments: 8, 
+					curveSegments: 32,
+					bevelEnabled: true,
+					bevelThickness: heightShore,
+					bevelSize: 900,
+					material: 0, 
+					extrudeMaterial: 1 
+				};
+				
+				var geometry = new THREE.ExtrudeGeometry(squareShape, extrudeSettings);
+				var mesh = new THREE.Mesh(geometry, material);
+
+				mesh.position.set(-sqWidth/2, -heightShore - amount, sqHight/2);
+				mesh.rotation.x = -Math.PI/2;
+				scene.add(mesh);			
+							
+				/*
+				var geometry = new THREE.ShapeGeometry( squareShape );
+				geometry.faceUvs = [
+					[]
+				];
+				geometry.faceVertexUvs = [
+					[]
+				];				
+								
+				for (var f = 0; f < geometry.faces.length; f++) {
+
+					var faceuv = [
+						new THREE.Vector2(0, 1),
+						new THREE.Vector2(1, 1),
+						new THREE.Vector2(1, 0),
+						new THREE.Vector2(0, 0)
+					];
+
+					geometry.faceUvs[0].push(new THREE.Vector2(0, 1));
+					geometry.faceVertexUvs[0].push(faceuv);
+				}
+
+				var Texture = new THREE.ImageUtils.loadTexture( 'textures/city.png' );
+				Texture.wrapS = THREE.RepeatWrapping;
+				Texture.wrapT = THREE.RepeatWrapping;
+				Texture.repeat.set( 1, 1 );
+				
+					var mesh = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { map: Texture, side: THREE.DoubleSide } ) );
+					
+					mesh.position.set( 0, 0, 0 );
+					mesh.rotation.x = -Math.PI/2;
+					scene.add( mesh );
+			*/
+				
+				
+				var geometry = new THREE.PlaneGeometry( sqWidth, sqHight, 10, 10 );
+				var material = new THREE.MeshLambertMaterial( { map: new THREE.ImageUtils.loadTexture( 'textures/city.png' ), side: THREE.DoubleSide, transparent: false, opacity: 0.6  } );
+
+				Plane = new THREE.Mesh( geometry, material );
+				Plane.position.set( 0, -5, 0 ); Plane.rotation.x = -Math.PI/2;
+			//	scene.add( Plane );
+
+				
+				//------------------ load Fountan ------------------ //				
+			
+			
+			initParticles( -2000, -320, 300, 500 );
+	
+			var geometry = new THREE.TorusGeometry( 120, 80, 36, 36 );
+			//	var material = new THREE.MeshPhongMaterial( { color: 0x00BFFF, shininess: 300 } );
+				var material = new THREE.MeshPhongMaterial( { color: 0xA0522D, shininess: 300 } );			
+				var disk = new THREE.Mesh( geometry, material );
+					disk.rotation.x = Math.PI / 2;
+					disk.position.set( -2000, -350, 300 );
+					scene.add( disk );
+
+	
+				//------------------ load volleyball ------------------ //	
+			var geometry = new THREE.Geometry;
+			var material = new THREE.LineBasicMaterial( { color: 0x8B4726 } );
+
+			geometry.vertices.push( new THREE.Vector3( -1000, 0, 0 ) ); 
+			geometry.vertices.push( new THREE.Vector3( -1000, 500, 0 ) ); 
+			geometry.vertices.push( new THREE.Vector3( 1000, 500, 0 ) ); 			
+			geometry.vertices.push( new THREE.Vector3( 1000, 0, 0 ) ); 
+			geometry.vertices.push( new THREE.Vector3( 1000, 300, 0 ) ); 
+			geometry.vertices.push( new THREE.Vector3( -1000, 300, 0 ) ); 
+			
+			var line = new THREE.Line( geometry, material );
+			line.scale.x = 1/1.85;
+			line.position.set( 4568, 0, -780 );
+			line.rotation.y = Math.PI / 2.8;
+			scene.add( line );
+
+			
+				//------------------ load GRID ------------------ //
+				
+			
+			
+			TdCount = 31.7; 
+			TdLen = 20 * 1024 / TdCount;
+			var gridLen = 10*1024;
+      
+
+            var gridXZ = new THREE.GridHelper( gridLen, TdLen );
+            gridXZ.setColors(new THREE.Color(0xD3D3D3), new THREE.Color(0xD3D3D3));
+            gridXZ.position.set(0, 10, 0);
+            //scene.add(gridXZ);
+			
+				//------------------ Второстепенные здания ------------------ //			
+			
+			grayBuildings();
+			
+				//------------------ ------------------ //			
+			
+
+			
+	///////////
+	// VIDEO //
+	///////////
+
+				EventsControls = new EventsControls( camera, renderer.domElement );
+
+				EventsControls.attachEvent( 'onclick', function () {
+				
+				scene.getObjectByName( "key" + String( this.event.item ) ).position.z = 0;	
+			
+					if ( this.event.item == 0 )	video.play();
+					if ( this.event.item == 1 )	video.pause();
+					
+					setTimeout( 'scene.getObjectByName( "key' + String( this.event.item ) + '" ).position.z = 20', 100 );
+
+					
+				});
+
+	
+	// create the video element
+	video = document.createElement( 'video' );
+	// video.id = 'video';
+	// video.type = ' video/ogg; codecs="theora, vorbis" ';
+	video.src = "videos/Selena Gomez & The Scene - Hit The Lights2_cut.mp4";
+	video.load(); // must call after setting/changing source
+	//video.play();
+	
+	// alternative method -- 
+	// create DIV in HTML:
+	// <video id="myVideo" autoplay style="display:none">
+	//		<source src="videos/sintel.ogv" type='video/ogg; codecs="theora, vorbis"'>
+	// </video>
+	// and set JS variable:
+	// video = document.getElementById( 'myVideo' );
+	
+	videoImage = document.createElement( 'canvas' );
+	videoImage.width = 480;
+	videoImage.height = 320;
+
+	videoImageContext = videoImage.getContext( '2d' );
+	// background color if no video present
+	videoImageContext.fillStyle = '#000000';
+	videoImageContext.fillRect( 0, 0, videoImage.width, videoImage.height );
+
+	videoTexture = new THREE.Texture( videoImage );
+	videoTexture.minFilter = THREE.LinearFilter;
+	videoTexture.magFilter = THREE.LinearFilter;
+		//videoTexture.offset.set( 0.3, 0.1 );
+	
+	var movieMaterial = new THREE.MeshBasicMaterial( { map: videoTexture, overdraw: true } ); // , side:THREE.DoubleSide
+	// the geometry on which the movie will be displayed;
+	// 		movie image will be scaled to fit these dimensions.
+	var koef = 5;
+	var movieGeometry = new THREE.PlaneGeometry( 220 * koef, 120 * koef, 4, 4 );
+	var movieScreen = new THREE.Mesh( movieGeometry, movieMaterial );
+	movieScreen.position.set(1000,1000,-3000);
+	movieScreen.rotation.y = -Math.PI / 6;
+	scene.add(movieScreen);
+	
+	var geometry = movieGeometry.clone();
+	var material = new THREE.MeshPhongMaterial( { color: 0x000F00, side: THREE.BackSide} )
+	var movieScreenBack = new THREE.Mesh( geometry, material );
+	movieScreenBack.position.copy( movieScreen.position );
+	movieScreenBack.rotation.y  =  movieScreen.rotation.y;
+	scene.add(movieScreenBack);			
+			
+	var pedestalTV = new THREE.Object3D();
+	var a = 5, b = 28, c = a + 23, d = b + 7;
+					vectors[0] = new THREE.Vector3(a,0,0);
+					vectors[1] = new THREE.Vector3(a,b,0);
+					vectors[2] = new THREE.Vector3(c,b,0);
+					vectors[3] = new THREE.Vector3(c,d,0);
+					vectors[4] = new THREE.Vector3(-c,d,0);
+					vectors[5] = new THREE.Vector3(-c,b,0);
+					vectors[6] = new THREE.Vector3(-a,b,0);
+					vectors[7] = new THREE.Vector3(-a,0,0);
+
+					var shape = new THREE.Shape(); 
+				shape.moveToVector( vectors[0].multiplyScalar( scale ) );
+				
+				for ( var i = 1; i < 8; i++ ) {
+
+					shape.lineToVector( vectors[i].multiplyScalar( scale ) );
+				}
+						shape.closePath();
+			
+			var extrudeSettings = { 
+					amount: 20, 
+					bevelSegments: 8, 
+					curveSegments: 32,
+					bevelEnabled: false
+				};
+				var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+				var material = new THREE.MeshLambertMaterial( { color: 0xA9A9A9 } );	
+				var mesh = new THREE.Mesh(geometry, material);
+
+				//mesh.rotation.x = -Math.PI/2;
+		mesh.position.z = -10;
+		//mesh.position.y = -d * scale;			
+		pedestalTV.add(mesh);			
+		
+			var material = new THREE.MeshLambertMaterial( { color: 0x3B3C3D } );	
+
+		var Texture =  THREE.ImageUtils.loadTexture( "textures/button_black_play.png" );
+			Texture.anisotropy = renderer.getMaxAnisotropy();		
+		var material1 = new THREE.MeshLambertMaterial( { map: Texture } );	
+
+		var mesh = new CylindricalMesh( 65, 30, 36, 1, [ material1, material ] );
+		mesh.name = 'key' + String( 0 );
+		mesh.rotation.x = Math.PI/2;	
+		mesh.position.set( -130, 625, 20 ); 		
+		pedestalTV.add( mesh );
+		
+		mesh.name = 'key' + String( 0 );
+		//EventsControls.attach( mesh );	
+
+		var Texture =  THREE.ImageUtils.loadTexture( "textures/button_black_pause.png" );
+			Texture.anisotropy = renderer.getMaxAnisotropy();			
+		var material1 = new THREE.MeshLambertMaterial( { map: Texture } );	
+
+		var mesh = new CylindricalMesh( 65, 30, 36, 1, [ material1, material ] );
+		mesh.rotation.x = Math.PI/2;	
+		mesh.position.set( 130, 625, 20 ); 
+
+		pedestalTV.add( mesh );
+
+		mesh.name = 'key' + String( 1 );
+		//EventsControls.attach( mesh );		
+		
+		pedestalTV.position.copy( movieScreen.position );
+		pedestalTV.position.y = 0;
+		pedestalTV.rotation.y  =  movieScreen.rotation.y;	
+		scene.add( pedestalTV );					
+				
+/*
+	
+            // Update cube map once the texture is loaded
+            // to avoid extra payload when updating it on each frame
+            treeTexture = THREE.ImageUtils.loadTexture(
+                'textures/tree.png'
+            );
+
+            var tree = new THREE.Sprite(new THREE.SpriteMaterial({
+                map: treeTexture,
+                useScreenCoordinates: false
+            }));
+			
+			tree.scale.set(1000, 1000, 1);
+            tree.position.set(-9000, 400, 10000);
+            scene.add(tree);
+			
+			for (var i=0; i<5; i++) {
+				for (var j=0; j<5-i; j++) {
+				
+					var mesh = tree.clone();
+					mesh.position.set(-9000+1000*i, 400, 10000 - 1000 * j);
+					scene.add(mesh);			
+				}
+			}
+			
+			var pos = []; 
+				for (var i=0; i<5; i++) {	
+				
+						var vector = new THREE.Vector3( -6000, 300, -5500 + 1000 * i );
+						pos.push( vector );
+				
+				}			
+
+				for (var i=0; i<5; i++) {	
+				
+						var vector = new THREE.Vector3( -7000, 300, -5500 + 1000 * i ); 
+						pos.push( vector );
+				}
+				
+				for (var i=0; i<3; i++) {	
+				
+						var vector = new THREE.Vector3( -6000, 300, 1500 + 1000 * i ); 
+						pos.push( vector );
+				}	
+				
+				for (var i=0; i<2; i++) {	
+				
+						var vector = new THREE.Vector3( -7000, 300, 1500 + 1000 * i ); 
+						pos.push( vector );
+				}
+
+				for (var i=0; i<3; i++) {	
+				
+						var vector = new THREE.Vector3( -5000, 300, 2500 + 1000 * i ); 
+						pos.push( vector );
+				}
+				
+				for (var i=0; i<3; i++) {	
+				
+						var vector = new THREE.Vector3( -4000, 300, 3250 + 1000 * i ); 
+						pos.push( vector );
+				}	
+				
+				for (var i=0; i<3; i++) {	
+				
+						var vector = new THREE.Vector3( -3000, 300, 3750 + 1000 * i ); 
+						pos.push( vector );
+				}					
+				
+				for (var i=0; i<pos.length; i++) {
+				
+						var mesh = tree.clone();
+						mesh.position.copy(pos[i]);
+						scene.add(mesh);			
+
+				}	
+	
+		
+*/
+	
+	var jsonLoader = new THREE.JSONLoader();
+	jsonLoader.load( "models/trees/tree.js", function( geometry, materials ) {
+			var material = new THREE.MeshFaceMaterial( materials );
+			var tree = new THREE.Mesh( geometry, material );
+			tree.scale.set(200,200,200);
+			tree.position.set( 3000, 0, -3000 );	
+
+	var spriteMaterial = new THREE.SpriteMaterial( 
+	{ 
+		map: new THREE.ImageUtils.loadTexture( 'textures/tree3.png' ), 
+		useScreenCoordinates: false, 
+		color: 0xffaa00, transparent: false, blending: THREE.AdditiveBlending
+	});
+	var sprite = new THREE.Sprite( spriteMaterial );
+	sprite.position.y = 3;
+	sprite.scale.set(5, 5, 1.0);
+	//tree.add(sprite); // this centers the glow at the mesh
+
+			
+			scene.add( tree ); 
+		});
+
+/*
+	
+				//------------------ load exterior ------------------ //			
+			var loader = new THREE.OBJMTLLoader(); // лоадер
+		
+			loader.load( 'models/bench/Bench2.obj', 'models/bench/Bench2.mtl', 
+				function ( Bench2 ) {
+				
+				
+				
+			var material = new THREE.MeshLambertMaterial( { color: 0xA0522D } );	
+			
+				Bench2.traverse( function ( child ) {
+
+						if ( child instanceof THREE.Mesh ) {
+
+							//child.material.map = texture;
+							child.material = material;
+						}
+
+					} );
+
+					
+					Bench2.scale.set(1/10, 1/10, 1/10);
+					Bench2.position.set( 2000, 25, -500 );
+					Bench2.material = material;		
+					//Bench2.rotation.y = Math.PI+Math.PI/3;	
+					//Bench2.rotation.x = -Math.PI/36;						
+					scene.add( Bench2 );
+		
+
+					var mesh = Bench2.clone();
+					scene.add( mesh );
+					mesh.position.set( 3000, 25, 0 );
+									
+			
+				}
+			);	
+			
+			loader.load( 'models/bench/Bench3.obj', 'models/bench/Bench3.mtl', 
+				function ( Bench3 ) {
+			var material = new THREE.MeshLambertMaterial( { color: 0x8B4513 } );	
+
+				Bench3.traverse( function ( child ) {
+
+						if ( child instanceof THREE.Mesh ) {
+
+							//child.material.map = texture;
+							child.material = material;
+						}
+
+					} );
+			
+					Bench3.scale.set(1/10, 1/10, 1/10);
+					Bench3.material = material;
+					Bench3.position.set( 4000, 50, 500 );	
+					//Bench3.rotation.y = Math.PI/2+Math.PI/3;	
+					scene.add( Bench3 );			
+					
+					var mesh = Bench3.clone();
+					scene.add( mesh );
+					mesh.position.set( 5000, 50, 1000 );
+					scene.add( mesh );			
+				}
+			);
+
+			loader.load( 'models/outdoorBench/outdoorBench.obj', 'models/outdoorBench/outdoorBench.mtl', 
+				function ( outdoorBench ) {
+					outdoorBench.scale.set(2/3, 2/3, 2/3);
+					outdoorBench.position.set( 1000, 0, -1000 );
+					//outdoorBench.rotation.y = Math.PI+Math.PI/3;					
+					scene.add( outdoorBench );				
+				}
+			);		
+				
+							/*
+								loader.load( 'models/outdoorBench/outdoorBench.obj', 'models/outdoorBench/outdoorBench.mtl', 
+									function ( outdoorBench ) {
+										outdoorBench.scale.set(2, 2, 2);
+										outdoorBench.position.set( 2000, 0, -500 );
+										outdoorBench.rotation.y = Math.PI+Math.PI/3;					
+										scene.add( outdoorBench );
+
+										var mesh = outdoorBench.clone();
+										scene.add( mesh );
+										mesh.position.set( 3000, 0, 0 );
+
+										var mesh = outdoorBench.clone();
+										scene.add( mesh );
+										mesh.position.set( 4000, 0, 500 );	
+
+										var mesh = outdoorBench.clone();
+										scene.add( mesh );
+										mesh.position.set( 5000, 0, 1000 );
+										
+									}
+								);		
+					
+					
+					
+					
+							loader.load( 'models/arbor/arbor.obj', 'models/arbor/arbor.mtl', 
+								function ( arbor ) {
+									arbor.position.set( -500, 0, -1500 );	
+									scene.add( arbor );
+								}
+							);
+						*/
+		/*
+			loader.load( 'models/arbor/arbor2.obj', 'models/arbor/arbor2.mtl', 
+				function ( arbor2 ) {
+			var material = new THREE.MeshLambertMaterial( { color: 0x8B4513 } );					
+					arbor2.traverse( function ( child ) {
+
+						if ( child instanceof THREE.Mesh ) {
+
+							//child.material.map = texture;
+							child.material = material;
+						}
+
+					} );			
+				
+					arbor2.scale.set(1/20, 1/20, 1/20);
+					arbor2.position.set( -500, 1, -1500 );			
+					scene.add( arbor2 );			
+				}
+			);
+
+			
+			loader.load( 'models/tent/tent.obj', 'models/tent/tent.mtl', 
+				function ( tent ) {
+					tent.scale.set(3, 3, 3);
+					tent.position.set( -1500, 300, -2000 );			
+					scene.add( tent );
+				}
+			);	
+
+	
+/*		
+			loader.load( 'models/tree/tree11111.obj', 'models/tree/tree11111.mtl', 
+				function ( tree ) {
+					tree.scale.set(2, 2, 2);
+					tree.position.set( -3000, 0, -2000 );			
+					scene.add( tree );			
+				}
+			);		
+		
+			
+	
+			loader.load( 'models/tree/tree11112.obj', 'models/tree/tree11112.mtl', 
+				function ( tree ) {
+					tree.scale.set(2, 2, 2);
+					tree.position.set( -7000, 0, -2000 );			
+					scene.add( tree );			
+				}
+			);		
+		
+			loader.load( 'models/tree/tree11113.obj', 'models/tree/tree11113.mtl', 
+				function ( tree ) {
+					tree.scale.set(2, 2, 2);
+					tree.position.set( -8000, 0, -2000 );			
+					scene.add( tree );			
+				}
+			);		
+		
+			loader.load( 'models/tree/tree11114.obj', 'models/tree/tree11114.mtl', 
+				function ( tree ) {
+					tree.scale.set(2, 2, 2);
+					tree.position.set( -5000, 0, -2000 );			
+					scene.add( tree );			
+				}
+			);		
+		
+	
+
+				
+/*			
+
+
+
+			
+		
+			
+			
+			loader.load( 'models/bridge/bridge3.obj', 'models/bridge/bridge3.mtl', 
+				function ( bridge3 ) {
+					bridge3.scale.set(1/2, 1/2, 2/3);
+					bridge3.position.set( 1500, 0, 1400 );
+					bridge3.rotation.y = -Math.PI/6;
+					bridge3.rotation.x = Math.PI/6;
+					bridge3.rotation.z = Math.PI/12;					
+					scene.add( bridge3 );
+				}
+			);	
+
+
+
+			
+		
+
+	
+
+			
+
+			loader.load( 'models/playground/playground.obj', 'models/playground/playground.mtl', 
+				function ( playground ) {
+					playground.scale.set(1/4, 1/4, 1/4);
+					playground.position.set( -1000, 0, -5000 );	
+					scene.add( playground );
+				}
+			);	
+		
+					
+			loader.load( 'models/hexagonalBench/hexagonalBench.obj', 'models/hexagonalBench/hexagonalBench.mtl', 
+				function ( hexagonalBench ) {
+					hexagonalBench.scale.set(4, 4, 4);
+					hexagonalBench.position.set( 2000, 0, -2000 );	
+					scene.add( hexagonalBench );
+				}
+			);	
+			
+			
+
+
+
+			
+
+			loader.load( 'models/urn/urn.obj', 'models/urn/urn.mtl', 
+				function ( urn ) {
+					urn.scale.set(4, 4, 4);
+					urn.position.set( 2500, 0, -500 );	
+					scene.add( urn );
+					
+					var mesh = urn.clone();
+					scene.add( mesh );
+					mesh.position.set( 3500, 0, 0 );
+					
+					var mesh = urn.clone();
+					scene.add( mesh );
+					mesh.position.set( 4500, 0, 500 );	
+					
+					var mesh = urn.clone();
+					scene.add( mesh );
+					mesh.position.set( 5500, 0, 1000 );
+		
+					
+				}
+			);
+
+
+/*
+		
+			
+
+			loader.load( 'models/tree/tree1.obj', 'models/tree/tree1.mtl', 
+				function ( tree ) {
+					tree.scale.set(2, 2, 2);
+					tree.position.set( -6000, 0, -2000 );			
+					scene.add( tree );
+					
+					var mesh = tree.clone();
+					scene.add( mesh );
+					mesh.position.set( -6000, 0, -1000 );
+
+					var mesh = tree.clone();
+					scene.add( mesh );
+					mesh.position.set( -6000, 0, 0 );
+	
+					var mesh = tree.clone();
+					scene.add( mesh );
+					mesh.position.set( -6000, 0, 1000 );
+
+
+					
+				}
+			);	
+			
+			
+			loader.load( 'models/tree/tree2.obj', 'models/tree/tree2.mtl', 
+				function ( tree ) {
+					tree.scale.set(3, 3, 3);
+					tree.position.set( -1600, 300, -2000 );			
+					scene.add( tree );
+				}
+			);	
+			
+			loader.load( 'models/tree/tree3.obj', 'models/tree/tree3.mtl', 
+				function ( tree ) {
+					tree.scale.set(3, 3, 3);
+					tree.position.set( -2200, 300, -2000 );			
+					scene.add( tree );
+				}
+			);	
+	
+			loader.load( 'models/fountain/fountain.obj', 'models/fountain/fountain.mtl', 
+				function ( fountain ) {
+					fountain.scale.set(2, 2, 2);
+					fountain.position.set( -250, 0, -220 );	
+					//scene.add( fountain );
+				}
+			);	
+			
+			loader.load( 'models/bridge/bridge.obj', 'models/bridge/bridge.mtl', 
+				function ( bridge ) {
+					//bridge.scale.set(1/2, 1/2, 1/2);
+					bridge.position.set( 1500, 0, -1200 );	
+					//scene.add( bridge );
+				}
+			);	
+			
+			loader.load( 'models/busStation/busStation.obj', 'models/busStation/busStation.mtl', 
+				function ( busStation ) {
+					busStation.scale.set(3, 3, 3);
+					busStation.position.set( -6500, 100, 0 );	
+					busStation.rotation.y = -Math.PI/2;					
+					scene.add( busStation );
+				}
+			);		
+	
+			
+  newmtl название_материала1   # Объявление очередного материала
+  # Цвета
+  Ka 1,000 1,000 0,000         # Цвет окружающего освещения (желтый)
+  Kd 1,000 1,000 1,000         # Диффузный цвет (белый)
+  # Параметры отражения
+  Ks 0,000 0,000 0,000         # Цвет зеркального отражения (0;0;0 - выключен)
+  Ns 10,000                    # Коэффициент зеркального отражения (от 0 до 1000)
+  # Параметры прозрачности
+  d 0,9                        # Прозрачность указывается с помощью директивы d
+  Tr 0,9                       #   или в других реализациях формата с помощью Tr
+  #Следующий материал
+  newmtl название_материала2
+  ...	
+
+• map_Ka -  Текстура
+• map_Kd -  Диффузная текстура
+• map_Ks -  Specular
+• map_Ns -  Specular highlight
+• map_d - Alpha
+• map_bump - название говорит само за себя Bump.
+• map_Ke -  Emission - самосвечение (или собственное излучение).  
+	*/		
+			}
+
+			//
+
+	function addModelToScene( geometry, materials ) 
+{
+			var material = new THREE.MeshFaceMaterial( materials );
+			var model = new THREE.Mesh( geometry, material );
+			model.scale.set(200,150,200);
+			scene.add( model );
+	
+}			
+			
+        function initParticles( x, y, z, count ) {
+        	particleGroup = new SPE.Group({
+        		texture: THREE.ImageUtils.loadTexture('textures/smokeparticle.png'),
+        		maxAge: 2
+        	});
+
+        	emitter = new SPE.Emitter({
+        		position: new THREE.Vector3( x, y, z ),
+                positionSpread: new THREE.Vector3( 0, 0, 0 ),
+
+        		acceleration: new THREE.Vector3(0, -10, 0).multiplyScalar(50),
+        		accelerationSpread: new THREE.Vector3( 10, 0, 10 ).multiplyScalar(50),
+
+        		velocity: new THREE.Vector3(0, 15, 0).multiplyScalar(50),
+        		velocitySpread: new THREE.Vector3(10, 7.5, 10).multiplyScalar(50),
+
+        		colorStart: new THREE.Color('white'),
+        		colorEnd: new THREE.Color('red'),
+        		sizeStart: 50,
+        		sizeEnd: 50,
+				opacityStart: 1,
+                opacityEnd: 1,
+        		particleCount: count
+        	});
+
+        	particleGroup.addEmitter( emitter );
+        	scene.add( particleGroup.mesh );
+
+        	//document.querySelector('.numParticles').textContent =
+        		//'Total particles: ' + emitter.particleCount;
+        }			
+			
+	function CylindricalMesh( 
+		Radius, Height, sgmRadius, sgmHeight, materials ) {
+
+		var Cylinder = new THREE.Object3D();
+		var geometry = new THREE.CylinderGeometry( Radius, Radius, 
+		Height, sgmRadius, sgmHeight, true );
+		var herd = new THREE.Mesh( geometry, materials[1] );
+		Cylinder.add( herd );
+
+		var obverse = new THREE.Mesh( new THREE.CircleGeometry( 
+		Radius, sgmRadius ), materials[0] );	
+		obverse.rotation.x = -Math.PI/2;					   
+		obverse.position.y = Height / 2;
+		Cylinder.add( obverse );
+		EventsControls.attach( obverse );	
+		return Cylinder;
+
+}
+
+CylindricalMesh.prototype = Object.create( CylindricalMesh.prototype );
+
+
+	
+			function animate() {
+
+				requestAnimationFrame( animate );
+				render();
+
+			}
+
+			function render() {
+
+				var time = performance.now() * 0.001;
+
+				water.material.uniforms.time.value += 1.0 / 60.0;
+				controls.update();
+				EventsControls.update();
+				water.render();		
+				
+				renderParticle( clock.getDelta() );				
+				renderer.render( scene, camera );
+
+				if ( video.readyState === video.HAVE_ENOUGH_DATA ) {
+				
+						videoImageContext.drawImage( video, 0, 0 );
+						if ( videoTexture ) 
+							videoTexture.needsUpdate = true;
+				}			
+				
+
+			}
+			
+			function renderParticle( dt ) {
+				particleGroup.tick( dt );
+			}
+
+			function grayBuildings() {
+			
+					vectors[0] = new THREE.Vector3(236,274);
+					vectors[1] = new THREE.Vector3(266,253);
+					vectors[2] = new THREE.Vector3(244,217);
+					vectors[3] = new THREE.Vector3(280,194);
+					vectors[4] = new THREE.Vector3(306,231);
+					vectors[5] = new THREE.Vector3(335,211);
+					vectors[6] = new THREE.Vector3(321,178);
+					vectors[7] = new THREE.Vector3(355,159);
+					vectors[8] = new THREE.Vector3(388,212);
+					vectors[9] = new THREE.Vector3(360,231);
+					vectors[10] = new THREE.Vector3(375,264);
+					vectors[11] = new THREE.Vector3(339,284);
+					vectors[12] = new THREE.Vector3(321,254);
+					vectors[13] = new THREE.Vector3(280,279);
+					vectors[14] = new THREE.Vector3(298,313);
+					vectors[15] = new THREE.Vector3(260,336);
+					vectors[16] = new THREE.Vector3(237,306);
+					vectors[17] = new THREE.Vector3(210,321);
+					vectors[18] = new THREE.Vector3(176,268);
+					vectors[19] = new THREE.Vector3(212,243);
+
+				var shape = new THREE.Shape(); 
+				shape.moveToVector( vectors[0].multiplyScalar( scale ) );
+				
+				for ( var i = 1; i < 20; i++ ) {
+
+					shape.lineToVector( vectors[i].multiplyScalar( scale ) );
+				}
+						shape.closePath();
+				
+
+					
+				var heightShore = 40, amount = 1060;
+				var extrudeSettings = { 
+					amount: amount, 
+					bevelSegments: 8, 
+					curveSegments: 32,
+					bevelEnabled: false
+				};
+				
+				var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+				var material = new THREE.MeshLambertMaterial( { color: 0xA9A9A9 } );			
+				var mesh = new THREE.Mesh(geometry, material);
+				mesh.rotation.x = -Math.PI/2;
+				scene.add(mesh);			
+
+				
+					vectors[0] = new THREE.Vector3(-102,272,0);
+					vectors[1] = new THREE.Vector3(-41,378,0);
+					vectors[2] = new THREE.Vector3(-80,405,0);
+					vectors[3] = new THREE.Vector3(-22,510,0);
+					vectors[4] = new THREE.Vector3(-77,509,0);
+					vectors[5] = new THREE.Vector3(-126,430,0);
+					vectors[6] = new THREE.Vector3(-134,435,0);
+					vectors[7] = new THREE.Vector3(-195,328,0);
+	
+				var shape = new THREE.Shape(); 
+				shape.moveToVector( vectors[0].multiplyScalar( scale ) );
+				
+				for ( var i = 1; i < 8; i++ ) {
+
+					shape.lineToVector( vectors[i].multiplyScalar( scale ) );
+				}
+						shape.closePath();
+
+				var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+				var material = new THREE.MeshLambertMaterial( { color: 0xA9A9A9 } );
+				var mesh = new THREE.Mesh(geometry, material);
+				mesh.rotation.x = -Math.PI/2;
+				scene.add(mesh);	
+
+					vectors[0] = new THREE.Vector3(-102,272,0);
+					vectors[1] = new THREE.Vector3(-41,378,0);
+					vectors[2] = new THREE.Vector3(-80,405,0);
+					vectors[3] = new THREE.Vector3(-22,510,0);
+					vectors[0] = new THREE.Vector3(21,-239,0);
+					vectors[1] = new THREE.Vector3(11,-243,0);
+					vectors[2] = new THREE.Vector3(-10,-230,0);
+					vectors[3] = new THREE.Vector3(-14,-237,0);
+					vectors[4] = new THREE.Vector3(-25,-230,0);
+					vectors[5] = new THREE.Vector3(-29,-212,0);
+					vectors[6] = new THREE.Vector3(-17,-187,0);
+					vectors[7] = new THREE.Vector3(0,-183,0);
+					vectors[8] = new THREE.Vector3(11,-189,0);
+					vectors[9] = new THREE.Vector3(13,-196,0);
+					vectors[10] = new THREE.Vector3(42,-212,0);
+					vectors[11] = new THREE.Vector3(49,-230,0);
+					vectors[12] = new THREE.Vector3(61,-228,0);
+					vectors[13] = new THREE.Vector3(86,-310,0);
+					vectors[14] = new THREE.Vector3(111,-305,0);
+					vectors[15] = new THREE.Vector3(125,-346,0);
+					vectors[16] = new THREE.Vector3(153,-362,0);
+					vectors[17] = new THREE.Vector3(159,-353,0);
+					vectors[18] = new THREE.Vector3(178,-367,0);
+					vectors[19] = new THREE.Vector3(175,-387,0);
+					vectors[20] = new THREE.Vector3(166,-400,0);
+					vectors[21] = new THREE.Vector3(152,-411,0);
+					vectors[22] = new THREE.Vector3(134,-403,0);
+					vectors[23] = new THREE.Vector3(139,-394,0);
+					vectors[24] = new THREE.Vector3(110,-379,0);
+					vectors[25] = new THREE.Vector3(100,-389,0);
+					vectors[26] = new THREE.Vector3(86,-344,0);
+					vectors[27] = new THREE.Vector3(68,-333,0);
+					vectors[28] = new THREE.Vector3(0,-346,0);
+					vectors[29] = new THREE.Vector3(-11,-294,0);
+					vectors[30] = new THREE.Vector3(31,-276,0);
+
+				var shape = new THREE.Shape(); 
+				shape.moveToVector( vectors[0].multiplyScalar( scale ) );
+				
+				for ( var i = 1; i < 31; i++ ) {
+
+					shape.lineToVector( vectors[i].multiplyScalar( scale ) );
+				}
+						shape.closePath();
+
+				var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+				var material = new THREE.MeshLambertMaterial( { color: 0xA9A9A9 } );				
+				var mesh = new THREE.Mesh(geometry, material);
+				mesh.rotation.x = -Math.PI/2;
+				scene.add(mesh);	
+				
+					vectors[0] = new THREE.Vector3(200,-304,0);
+					vectors[1] = new THREE.Vector3(188,-322,0);
+					vectors[2] = new THREE.Vector3(210,-336,0);
+					vectors[3] = new THREE.Vector3(223,-319,0);
+
+				var shape = new THREE.Shape(); 
+				shape.moveToVector( vectors[0].multiplyScalar( scale ) );
+				
+				for ( var i = 1; i < 4; i++ ) {
+
+					shape.lineToVector( vectors[i].multiplyScalar( scale ) );
+				}
+						shape.closePath();
+
+				var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+				var material = new THREE.MeshLambertMaterial( { color: 0xA9A9A9 } );		
+				var mesh = new THREE.Mesh(geometry, material);
+
+				mesh.rotation.x = -Math.PI/2;
+				scene.add(mesh);					
+	
+					vectors[0] = new THREE.Vector3(228,128,0);
+					vectors[1] = new THREE.Vector3(216,108,0);
+					vectors[2] = new THREE.Vector3(245,91,0);
+					vectors[3] = new THREE.Vector3(257,111,0);
+				var shape = new THREE.Shape(); 
+				shape.moveToVector( vectors[0].multiplyScalar( scale ) );
+				
+				for ( var i = 1; i < 4; i++ ) {
+
+					shape.lineToVector( vectors[i].multiplyScalar( scale ) );
+				}
+						shape.closePath();
+
+				var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+				var material = new THREE.MeshLambertMaterial( { color: 0xA9A9A9 } );				
+				var mesh = new THREE.Mesh(geometry, material);
+
+				mesh.rotation.x = -Math.PI/2;
+				scene.add(mesh);	
+	
+					vectors[0] = new THREE.Vector3(-285,6,0);
+					vectors[1] = new THREE.Vector3(-267,6,0);
+					vectors[2] = new THREE.Vector3(-267,42,0);
+					vectors[3] = new THREE.Vector3(-286,42,0);	
+
+				var shape = new THREE.Shape(); 
+				shape.moveToVector( vectors[0].multiplyScalar( scale ) );
+				
+				for ( var i = 1; i < 4; i++ ) {
+
+					shape.lineToVector( vectors[i].multiplyScalar( scale ) );
+				}
+						shape.closePath();
+
+				var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+				var material = new THREE.MeshLambertMaterial( { color: 0xA9A9A9 } );
+				var mesh = new THREE.Mesh(geometry, material);
+
+				mesh.rotation.x = -Math.PI/2;
+				scene.add(mesh);	
+
+					vectors[0] = new THREE.Vector3(350,-267,0);
+					vectors[1] = new THREE.Vector3(369,-235,0);
+					vectors[2] = new THREE.Vector3(510,-316,0);
+					vectors[3] = new THREE.Vector3(510,-359,0);
+
+				var shape = new THREE.Shape(); 
+				shape.moveToVector( vectors[0].multiplyScalar( scale ) );
+				
+				for ( var i = 1; i < 4; i++ ) {
+
+					shape.lineToVector( vectors[i].multiplyScalar( scale ) );
+				}
+						shape.closePath();
+
+				var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+
+				var material = new THREE.MeshLambertMaterial( { color: 0xA9A9A9 } );
+				
+				var mesh = new THREE.Mesh(geometry, material);
+				mesh.rotation.x = -Math.PI/2;
+				scene.add(mesh);	
+	
+					//
+					
+					vectors[0] = new THREE.Vector3(432,-126,0);
+					vectors[1] = new THREE.Vector3(450,-94,0);
+					vectors[2] = new THREE.Vector3(510,-127,0);
+					vectors[3] = new THREE.Vector3(510,-175,0);
+
+	
+				var shape = new THREE.Shape(); 
+				shape.moveToVector( vectors[0].multiplyScalar( scale ) );
+				
+				for ( var i = 1; i < 4; i++ ) {
+
+					shape.lineToVector( vectors[i].multiplyScalar( scale ) );
+				}
+						shape.closePath();
+
+				var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+				var material = new THREE.MeshLambertMaterial( { color: 0xA9A9A9 } );	
+				var mesh = new THREE.Mesh(geometry, material);
+
+				mesh.rotation.x = -Math.PI/2;
+				scene.add(mesh);
+		
+			
+			}
+			
+
+		</script>
+	</body>
+</html>
