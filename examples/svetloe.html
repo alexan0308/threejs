@@ -1262,10 +1262,116 @@ scene.add( tree );
 	
 	}
 		
-		
-	function prism( vectors, H, sizeX, Count, texturePath, transparent, opacity, posY ) {	
+
+	function prism2( vectors, settings, Material, closed ) {	
+
+		var H = settings.H;
+		var sizeX = settings.sizeX;	
+		var count = settings.count;		
+		var closed = ( closed !== undefined ) ? closed : false;
+		var bias = settings.bias;
+		//console.log( 'bias ' + bias );
+	
+			var k0, absSize;
+
+			var object = new THREE.Object3D();
+			
+			for ( var i = 0; i < vectors.length-1; i++ ) {
+			
+				var vec1 = new THREE.Vector3();
+					vec1.subVectors( vectors[i+1], vectors[i] );
+	
+				var vec2 = new THREE.Vector3( 1, 0, 0 ); var vec3 = new THREE.Vector3( 0, 1, 0 );
+				var angle = vec1.angleTo( vec2 );
 				
-			var bias = 0; var k0, absSize;
+				var sign = signum( vec1.dot( vec3 ) );
+				
+				var len = vec1.length();
+
+				var geometry = new THREE.PlaneBufferGeometry( len, H, 1, 1 );
+				geometry.applyMatrix( new THREE.Matrix4().makeRotationY( -sign * angle ) );
+
+					if ( i == 0 ) { 
+						k0 = len / ( count * sizeX ); 
+						absSize =  k0 * sizeX;
+					}
+					else {
+					
+						count = len / ( k0 * sizeX );
+						
+					}
+						
+				var material = Material.clone();
+					var map = new THREE.ImageUtils.loadTexture( settings.url );
+					map.anisotropy = renderer.getMaxAnisotropy();					
+					material.map = map;
+					material.map.wrapS = THREE.RepeatWrapping;
+					material.map.wrapT = THREE.RepeatWrapping; 
+
+					material.map.repeat.set( count, 1 );
+					material.map.offset.set( bias , 0 );					
+
+				var plane = new THREE.Mesh( geometry, material );
+			
+				plane.position.set( ( vectors[i].x + vectors[i+1].x ) / 2, 1000, ( vectors[i].y + vectors[i+1].y ) / 2 );
+
+				object.add(plane);		
+
+				var bias2 = ( len - Math.round( count ) * sizeX * k0 ) / absSize;
+				bias = bias + bias2;
+				
+			}
+
+			if ( closed ) {
+
+				var vec1 = new THREE.Vector3();
+					vec1.subVectors(  vectors[0], vectors[vectors.length - 1] );
+	
+				var vec2 = new THREE.Vector3( 1, 0, 0 ); var vec3 = new THREE.Vector3( 0, 1, 0 );
+				var angle = vec1.angleTo( vec2 );
+				
+				var sign = signum( vec1.dot( vec3 ) );
+				
+				var len = vec1.length();
+				
+
+				var geometry = new THREE.PlaneBufferGeometry( len, H, 1, 1 );
+				geometry.applyMatrix( new THREE.Matrix4().makeRotationY( -sign * angle ) );
+
+					if ( i == 0 ) { 
+						k0 = len / ( count * sizeX ); 
+						absSize =  k0 * sizeX;
+					}
+					else {
+					
+						count = len / ( k0 * sizeX );
+						
+					}
+				var material = Material.clone();
+					var map = new THREE.ImageUtils.loadTexture( settings.url );
+					map.anisotropy = renderer.getMaxAnisotropy();					
+					material.map = map;
+					
+					material.map.wrapS = THREE.RepeatWrapping;
+					material.map.wrapT = THREE.RepeatWrapping; 			
+					material.map.repeat.set( count, 1 );
+					material.map.offset.set( bias , 0 );
+
+				var plane = new THREE.Mesh( geometry, material );
+			
+				plane.position.set( ( vectors[vectors.length - 1].x + vectors[0].x ) / 2, 1000, ( vectors[vectors.length - 1].y + vectors[0].y ) / 2 );
+
+				object.add(plane);
+				
+			}
+			return object;		
+		}	
+
+		
+	function prism( vectors, H, sizeX, Count, texturePath, transparent, opacity, posY, closed, bias0 ) {	
+
+			var bias = ( bias0 !== undefined ) ? bias0 : 0;
+			var k0, absSize;
 			var count = Count;
 			
 			for ( var i = 0; i < vectors.length-1; i++ ) {
@@ -1301,6 +1407,7 @@ scene.add( tree );
 					
 					texture.repeat.set( count, 1 );
 					texture.offset.set( bias , 0 );	
+					//console.log( 'count1 ' + count );
 				
 				var material = new THREE.MeshLambertMaterial( { map: texture, side: THREE.DoubleSide, transparent: transparent, opacity: opacity } );
 				var plane = new THREE.Mesh( geometry, material );
@@ -1312,7 +1419,53 @@ scene.add( tree );
 				var bias2 = ( len - Math.round( count ) * sizeX * k0 ) / absSize;
 				bias = bias + bias2;
 				
-			}	
+			}
+
+			if ( closed ) {
+
+				var vec1 = new THREE.Vector3();
+					vec1.subVectors(  vectors[0], vectors[vectors.length - 1] );
+	
+				var vec2 = new THREE.Vector3( 1, 0, 0 ); var vec3 = new THREE.Vector3( 0, 1, 0 );
+				var angle = vec1.angleTo( vec2 );
+				
+				var sign = signum( vec1.dot( vec3 ) );
+				
+				var len = vec1.length();
+				
+
+				var geometry = new THREE.PlaneBufferGeometry( len, H, 1, 1 );
+				geometry.applyMatrix( new THREE.Matrix4().makeRotationY( -sign * angle ) );
+				
+				var texture = THREE.ImageUtils.loadTexture( texturePath );
+					texture.wrapS = THREE.RepeatWrapping;
+					texture.wrapT = THREE.RepeatWrapping; 
+					texture.anisotropy = renderer.getMaxAnisotropy();
+
+					if ( i == 0 ) { 
+						k0 = len / ( count * sizeX ); 
+						absSize =  k0 * sizeX;
+					}
+					else {
+					
+						count = len / ( k0 * sizeX );
+						
+					}
+					
+					texture.repeat.set( count, 1 );
+					texture.offset.set( bias , 0 );	
+				
+				var material = new THREE.MeshLambertMaterial( { map: texture, side: THREE.DoubleSide, transparent: transparent, opacity: opacity } );
+				var plane = new THREE.Mesh( geometry, material );
+			
+				plane.position.set( ( vectors[vectors.length - 1].x + vectors[0].x ) / 2, posY, ( vectors[vectors.length - 1].y + vectors[0].y ) / 2 );
+
+				scene.add(plane);		
+
+				//var bias2 = ( len - Math.round( count ) * sizeX * k0 ) / absSize;
+				//bias = bias + bias2;
+				
+			}
 				
 		}				
 			
@@ -1576,10 +1729,6 @@ CylindricalMesh.prototype = Object.create( CylindricalMesh.prototype );
 				mesh.rotation.x = -Math.PI/2;
 				scene.add(mesh);			
 
-				
-				
-				
-				
 					vectors[0] = new THREE.Vector3(-102,272,0);
 					vectors[1] = new THREE.Vector3(-41,378,0);
 					vectors[2] = new THREE.Vector3(-80,405,0);
@@ -1603,77 +1752,9 @@ CylindricalMesh.prototype = Object.create( CylindricalMesh.prototype );
 				var mesh = new THREE.Mesh(geometry, material);
 				mesh.rotation.x = -Math.PI/2;
 				scene.add(mesh);	
-
-					vectors[0] = new THREE.Vector3(-102,272,0);
-					vectors[1] = new THREE.Vector3(-41,378,0);
-					vectors[2] = new THREE.Vector3(-80,405,0);
-					vectors[3] = new THREE.Vector3(-22,510,0);
-					vectors[0] = new THREE.Vector3(21,-239,0);
-					vectors[1] = new THREE.Vector3(11,-243,0);
-					vectors[2] = new THREE.Vector3(-10,-230,0);
-					vectors[3] = new THREE.Vector3(-14,-237,0);
-					vectors[4] = new THREE.Vector3(-25,-230,0);
-					vectors[5] = new THREE.Vector3(-29,-212,0);
-					vectors[6] = new THREE.Vector3(-17,-187,0);
-					vectors[7] = new THREE.Vector3(0,-183,0);
-					vectors[8] = new THREE.Vector3(11,-189,0);
-					vectors[9] = new THREE.Vector3(13,-196,0);
-					vectors[10] = new THREE.Vector3(42,-212,0);
-					vectors[11] = new THREE.Vector3(49,-230,0);
-					vectors[12] = new THREE.Vector3(61,-228,0);
-					vectors[13] = new THREE.Vector3(86,-310,0);
-					vectors[14] = new THREE.Vector3(111,-305,0);
-					vectors[15] = new THREE.Vector3(125,-346,0);
-					vectors[16] = new THREE.Vector3(153,-362,0);
-					vectors[17] = new THREE.Vector3(159,-353,0);
-					vectors[18] = new THREE.Vector3(178,-367,0);
-					vectors[19] = new THREE.Vector3(175,-387,0);
-					vectors[20] = new THREE.Vector3(166,-400,0);
-					vectors[21] = new THREE.Vector3(152,-411,0);
-					vectors[22] = new THREE.Vector3(134,-403,0);
-					vectors[23] = new THREE.Vector3(139,-394,0);
-					vectors[24] = new THREE.Vector3(110,-379,0);
-					vectors[25] = new THREE.Vector3(100,-389,0);
-					vectors[26] = new THREE.Vector3(86,-344,0);
-					vectors[27] = new THREE.Vector3(68,-333,0);
-					vectors[28] = new THREE.Vector3(0,-346,0);
-					vectors[29] = new THREE.Vector3(-11,-294,0);
-					vectors[30] = new THREE.Vector3(31,-276,0);
-
-				var shape = new THREE.Shape(); 
-				shape.moveToVector( vectors[0].multiplyScalar( scale ) );
+			
 				
-				for ( var i = 1; i < 31; i++ ) {
-
-					shape.lineToVector( vectors[i].multiplyScalar( scale ) );
-				}
-						shape.closePath();
-
-				var extrudeSettings = { 
-					amount: 1060, 
-					bevelSegments: 8, 
-					curveSegments: 32, 
-					material: 0, 
-					extrudeMaterial: 1 
-				};		
-						
-				var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
-				var material = new THREE.MeshLambertMaterial( { color: 0xA9A9A9 } );
-				
-				var Texture = new THREE.ImageUtils.loadTexture( 'textures/svetloe/lenina64.jpg' );
-				Texture.wrapS = Texture.wrapT = THREE.RepeatWrapping;
-				Texture.repeat.set( ( 1 / 256 ) / 4 , ( 1 / 128)  / 8 );
-				var extrMaterial = new THREE.MeshBasicMaterial({
-					map: Texture
-				});				
-				
-				var materials = [ material, extrMaterial];
-				//var material = new THREE.MeshFaceMaterial(materials);
-
-				
-				var lenina64 = new THREE.Mesh(geometry, material);
-				lenina64.rotation.x = -Math.PI/2;
-				scene.add(lenina64);	
+				vectors.length = 4;
 				
 					vectors[0] = new THREE.Vector3(200,-304,0);
 					vectors[1] = new THREE.Vector3(188,-322,0);
@@ -1782,8 +1863,199 @@ CylindricalMesh.prototype = Object.create( CylindricalMesh.prototype );
 
 				mesh.rotation.x = -Math.PI/2;
 				scene.add(mesh);
-		
-			
+
+
+				
+
+				// lenina64
+				
+					vectors[0] = new THREE.Vector3(-102,272,0);
+					vectors[1] = new THREE.Vector3(-41,378,0);
+					vectors[2] = new THREE.Vector3(-80,405,0);
+					vectors[3] = new THREE.Vector3(-22,510,0);
+					vectors[0] = new THREE.Vector3(21,-239,0);
+					vectors[1] = new THREE.Vector3(11,-243,0);
+					vectors[2] = new THREE.Vector3(-10,-230,0);
+					vectors[3] = new THREE.Vector3(-14,-237,0);
+					vectors[4] = new THREE.Vector3(-25,-230,0);
+					vectors[5] = new THREE.Vector3(-29,-212,0);
+					vectors[6] = new THREE.Vector3(-17,-187,0);
+					vectors[7] = new THREE.Vector3(0,-183,0);
+					vectors[8] = new THREE.Vector3(11,-189,0);
+					vectors[9] = new THREE.Vector3(13,-196,0);
+					vectors[10] = new THREE.Vector3(42,-212,0);
+					vectors[11] = new THREE.Vector3(49,-230,0);
+					vectors[12] = new THREE.Vector3(61,-228,0);
+					vectors[13] = new THREE.Vector3(86,-310,0);
+					vectors[14] = new THREE.Vector3(111,-305,0);
+					vectors[15] = new THREE.Vector3(125,-346,0);
+					vectors[16] = new THREE.Vector3(153,-362,0);
+					vectors[17] = new THREE.Vector3(159,-353,0);
+					vectors[18] = new THREE.Vector3(178,-367,0);
+					vectors[19] = new THREE.Vector3(175,-387,0);
+					vectors[20] = new THREE.Vector3(166,-400,0);
+					vectors[21] = new THREE.Vector3(152,-411,0);
+					vectors[22] = new THREE.Vector3(134,-403,0);
+					vectors[23] = new THREE.Vector3(139,-394,0);
+					vectors[24] = new THREE.Vector3(110,-379,0);
+					vectors[25] = new THREE.Vector3(93,-369,5);
+					vectors[26] = new THREE.Vector3(84,-348,5);
+					vectors[27] = new THREE.Vector3(68,-333,4);
+					vectors[28] = new THREE.Vector3(57,-324,5);
+					vectors[29] = new THREE.Vector3(45,-324,5);
+					vectors[30] = new THREE.Vector3(34,-283,5);
+				
+				vectors.length = 31;
+
+				for ( var i = 0; i < vectors.length; i++ ) {
+				
+						vectors[i].multiplyScalar( scale );
+						vectors[i].y = - vectors[i].y;
+	
+				}
+				
+				var shape = new THREE.Shape(); 				
+				shape.moveToVector( vectors[0] );
+				for ( var i = 1; i < vectors.length; i++ ) {
+				
+						shape.lineToVector( vectors[i] );		
+				}					
+				
+				shape.closePath();
+				var geometry = new THREE.ShapeGeometry( shape );
+				var material = new THREE.MeshLambertMaterial( { color: 0x6A5129, side: THREE.BackSide } );				
+				var mesh = new THREE.Mesh(geometry, material);
+
+				mesh.position.set(0, 2000, 0);
+				mesh.rotation.x = Math.PI/2;
+				//scene.add(mesh);
+				
+				var extrudeSettings = { 
+					amount: 0.1, 
+					bevelSegments: 8, 
+					curveSegments: 32, 
+					material: 1, 
+					extrudeMaterial: 0 
+				};		
+						
+				var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+				var material = new THREE.MeshLambertMaterial( { color: 0x4A2F24 } );
+				
+				var Texture = new THREE.ImageUtils.loadTexture( 'textures/svetloe/lenina64Top2.jpg' );
+				Texture.wrapS = Texture.wrapT = THREE.RepeatWrapping;
+				Texture.repeat.set( ( 1 / 256 ) / 2 , ( 1 / 128)  / 4 );
+				var extrMaterial = new THREE.MeshBasicMaterial({
+					map: Texture
+				});				
+				
+				var materials = [ material, extrMaterial];
+				var material = new THREE.MeshFaceMaterial(materials);
+				var mesh = new THREE.Mesh(geometry, material);
+
+				mesh.position.set(0, 2000, 0);
+				mesh.rotation.x = Math.PI/2;
+				scene.add(mesh);				
+				
+				
+				var material = new THREE.MeshLambertMaterial();
+				material.side = THREE.BackSide;
+				
+				var lenina64 = prism2( vectors, { H: 2000, sizeX: 256, count: 1/5.5, bias: 0, url: 'textures/svetloe/lenina64.jpg' }, material, true );
+				scene.add(lenina64);	
+	
+
+					vectors[3] = new THREE.Vector3(68,-333,0);
+					vectors[2] = new THREE.Vector3(0,-346,0);
+					vectors[1] = new THREE.Vector3(-11,-294,0);
+					vectors[0] = new THREE.Vector3(31,-276,0);
+				
+				vectors.length = 4;
+
+				for ( var i = 0; i < vectors.length; i++ ) {
+				
+						vectors[i].multiplyScalar( scale );
+						vectors[i].y = - vectors[i].y;
+	
+				}
+				
+				var shape = new THREE.Shape(); 				
+				shape.moveToVector( vectors[0] );
+				for ( var i = 1; i < vectors.length; i++ ) {
+				
+						shape.lineToVector( vectors[i] );		
+				}					
+				
+				shape.closePath();
+				var geometry = new THREE.ShapeGeometry( shape );
+				var material = new THREE.MeshLambertMaterial( { color: 0x6A5129, side: THREE.BackSide } );				
+				var mesh = new THREE.Mesh(geometry, material);
+
+				mesh.position.set(0, 500, 0);
+				mesh.rotation.x = Math.PI/2;
+				//scene.add(mesh);
+				
+				var extrudeSettings = { 
+					amount: 0.1, 
+					bevelSegments: 8, 
+					curveSegments: 32, 
+					material: 1, 
+					extrudeMaterial: 0 
+				};		
+						
+				var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+				var material = new THREE.MeshLambertMaterial( { color: 0x4A2F24 } );
+				
+				var Texture = new THREE.ImageUtils.loadTexture( 'textures/svetloe/lenina64Top2.jpg' );
+				Texture.wrapS = Texture.wrapT = THREE.RepeatWrapping;
+				Texture.repeat.set( ( 1 / 256 ) / 2 , ( 1 / 128)  / 4 );
+				var extrMaterial = new THREE.MeshBasicMaterial({
+					map: Texture
+				});				
+				
+				var materials = [ material, extrMaterial];
+				var material = new THREE.MeshFaceMaterial(materials);
+				var mesh = new THREE.Mesh(geometry, material);
+
+				mesh.position.set(0, 500, 0);
+				mesh.rotation.x = Math.PI/2;
+				//scene.add(mesh);				
+				
+				
+				var material = new THREE.MeshLambertMaterial();
+				//material.side = THREE.BackSide;
+				
+				var lenina64Mebel = prism2( vectors, { H: 400, sizeX: 256, count: 1/5.5, bias: 0, url: 'textures/svetloe/lenina64Mebel.jpg' }, material, true );
+				lenina64Mebel.position.y = -800;
+				scene.add(lenina64Mebel);
+
+
+				var extrudeSettings = { 
+					amount: 1, 
+					bevelSegments: 8, 
+					curveSegments: 32, 
+					material: 1, 
+					extrudeMaterial: 0 
+				};		
+						
+				var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+				var material = new THREE.MeshLambertMaterial( { color: 0x656963 } );
+				
+				var Texture = new THREE.ImageUtils.loadTexture( 'textures/svetloe/lenina64Mebel2.jpg' );
+				Texture.wrapS = Texture.wrapT = THREE.RepeatWrapping;
+				Texture.repeat.set( ( 1 / 256 ) / 4 , ( 1 / 128)  / 4 );
+				var extrMaterial = new THREE.MeshBasicMaterial({
+					map: Texture
+				});				
+				
+				var materials = [ material, extrMaterial];
+				var material = new THREE.MeshFaceMaterial(materials);
+				var mesh = new THREE.Mesh(geometry, material);
+
+				mesh.position.set(0, 400, 0);
+				mesh.rotation.x = Math.PI/2;
+				scene.add(mesh);
+				
+	
 			}
 			
 
