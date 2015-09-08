@@ -97,7 +97,6 @@
 
 				EventsControls1 = new EventsControls( camera, renderer.domElement );
 				EventsControls1.map = checkerboard;
-
 				EventsControls1.attachEvent( 'mouseOver', function () {
 
 					this.container.style.cursor = 'pointer';
@@ -200,7 +199,7 @@
 				mesh.position.y = h; mesh.rotation.x = Math.PI / 2; mesh.rotation.z = Math.PI / 2;
 				object3D.add( mesh );  mesh.name = 'top checker';
 				object3D.position.set( -25, h / 2, 125 );				
-			//	scene.add( object3D );  EventsControls2.attach( object3D );
+				scene.add( object3D );  EventsControls2.attach( object3D );
 
 
 				EventsControls3 = new EventsControls( camera, renderer.domElement );
@@ -394,6 +393,13 @@
 			function render() {
 
 					stats.update();
+
+					EventsControls1.update();
+					EventsControls2.update();
+					EventsControls3.update();
+					EventsControls4.update();
+					EventsControls5.update();
+
 					controls.update();
 					renderer.render(scene, camera);
 

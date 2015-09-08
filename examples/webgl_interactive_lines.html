@@ -167,7 +167,7 @@
 				camera.position.z = radius * Math.cos( THREE.Math.degToRad( theta ) );
 				camera.lookAt( scene.position );
 
-				EventsControls.update();
+				EventsControls.update();  // real-time update
 				renderer.render( scene, camera );
 
 			}

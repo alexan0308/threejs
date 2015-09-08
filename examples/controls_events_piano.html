@@ -37,19 +37,20 @@
 
 
 			var camera, scene, renderer, controls;
+			var audios = [];
 
 			init();
 			animate();
 
 			function init() {
 
-
-				var sssr = '';
 				for ( var i = 0; i < 8; i ++ ) {
-					sssr = sssr + '<span id = "sound' + String( i )  + '"> </span>\n'; 
+					var audio = document.createElement( "audio" );
+					document.body.appendChild( audio );
+					audio.src = 'snd/' + String( i ) + '.mp3';
+					audio.load();
+					audios.push( audio );
 				}
-
-				document.body.innerHTML = document.body.innerHTML + sssr;
 
 				renderer = new THREE.WebGLRenderer( { antialias: true } ); 
 				renderer.setClearColor( 0x6495ED );
@@ -115,7 +116,7 @@
 				EventsControls.attachEvent( 'onclick', function () {
 
 					this.focused.position.y = -20;
-					DHTMLSound( 'snd/' + String( this.event.item ) + '.mp3', 'sound' + String( this.event.item ), ' ' );
+					audios[ this.event.item ].play();
 					setTimeout( 'scene.getObjectByName( "key' + String( this.event.item ) + '" ).position.y = 0', 100 );
 					console.log( 'the key at number ' + this.event.item + ' is pressed' );
 
@@ -137,18 +138,6 @@
 			}
 
 
-			function DHTMLSound( audioSrc, id, loop ) {
-
-					try {
-						document.getElementById( id ).innerHTML = 
-						' <audio src=" ' + audioSrc + 
-						' " autoplay="autoplay" ' + loop + 
-						' ></audio> ';
-					}
-					catch( exception ) {}
-
-			}
-
 			function animate() {
 
 					requestAnimationFrame(animate);
@@ -160,7 +149,7 @@
 			function render() {
 
 					stats.update();
-					EventsControls.update();
+					EventsControls.update(); // real-time update
 					controls.update();
 					renderer.render(scene, camera);
 

@@ -6,8 +6,9 @@
 
 // intersects = raycaster.intersectObjects( objects );
 // =>
-// this.focused = intersects[ 0 ].object 	OR
-// 		this.mouseOvered = intersects[ 0 ].object
+// intersects[ 0 ].object = this.focused
+//     OR
+// intersects[ 0 ].object = this.mouseOvered
 // this.event = intersects[ 0 ];
 // this.event.item - number of the selected object
 // this.event.distance - distance between the origin of the ray and the intersection
@@ -38,6 +39,8 @@ EventsControls = function ( camera, domElement ) {
 
 	this.map = null;
 	this.event = null;
+	this.offset = new THREE.Vector3();
+	this.offsetUse = false;	
 	
 	this._mouse = new THREE.Vector2();
 	this.mouse = new THREE.Vector2();
@@ -62,7 +65,7 @@ EventsControls = function ( camera, domElement ) {
 	this.intersectsMap = [];
 
 	this.update = function () {
-		if ( _this.enabled ) { 
+		if ( _this.enabled ) {
 			onContainerMouseMove();
 			if ( _mouseMoveFlag ) _this.mouseMove();
 		}
@@ -216,15 +219,15 @@ EventsControls = function ( camera, domElement ) {
 	}
 
 	function getMousePos( event ) {
-		if ( _this.enabled ) { 	
+		if ( _this.enabled ) {
 			var x = event.offsetX == undefined ? event.layerX : event.offsetX;
 			var y = event.offsetY == undefined ? event.layerY : event.offsetY;	
 
 			_this._mouse.x = ( ( x ) / _this.container.width ) * 2 - 1;
 			_this._mouse.y = - ( ( y ) / _this.container.height ) * 2 + 1;
-
-			var vector = new THREE.Vector3( _this._mouse.x, _this._mouse.y, 0.5 );
-			return vector;
+			
+			onContainerMouseMove();
+			if ( _mouseMoveFlag ) _this.mouseMove();
 		}
 	}
 
@@ -239,6 +242,19 @@ EventsControls = function ( camera, domElement ) {
 
 				_this.event = _this.intersects[ 0 ];
 				_this.setFocus( _this.intersects[ 0 ].object );
+
+				if ( _dragAndDropFlag ) {
+					_this.intersects = _this.raycaster.intersectObject( _this.map );
+					
+					try {
+						if ( _this.offsetUse ) _this.offset.subVectors( _this.intersects[ 0 ].point, _this.focused.position );
+						//console.log( _this.offset );
+						//_this.offset.copy( _this.intersects[ 0 ].point ).sub( _this.map.position );
+					}
+					catch( err ) {}
+
+				}
+
 				_this.onclick();
 
 			}
@@ -258,7 +274,7 @@ EventsControls = function ( camera, domElement ) {
 				_DisplaceIntersectsMap = _this.raycaster.intersectObject( _this.map );
 				//_this._setMap();
 				try {
-					var pos = new THREE.Vector3().copy( _DisplaceIntersectsMap[ 0 ].point );
+					var pos = new THREE.Vector3().copy( _DisplaceIntersectsMap[ 0 ].point.sub( _this.offset ) );
 					_this.focused.position.copy( pos );
 				}
 				catch( err ) {}
