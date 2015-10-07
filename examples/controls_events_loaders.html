@@ -29,6 +29,8 @@
 		<script src="../build/three.min.js"></script>
 		<script src="js/loaders/MTLLoader.js"></script>
 		<script src="js/loaders/OBJMTLLoader.js"></script>
+		<script src="js/loaders/ColladaLoader.js"></script>
+
 
 		<script src="js/libs/stats.min.js"></script>
 
@@ -103,7 +105,7 @@
 
 				EventsControls1 = new EventsControls( camera, renderer.domElement );
 				EventsControls1.map = checkerboard;			
-
+				EventsControls1 .offsetUse = true;
 				EventsControls1.attachEvent( 'mouseOver', function () {
 
 					this.container.style.cursor = 'pointer';
@@ -120,35 +122,95 @@
 
 					this.container.style.cursor = 'move';
 					this.focused.position.y = this.previous.y;
-				//	this.focused.position.x = 25 + 50 * Math.round( ( this.focused.position.x - 25 ) / 50 );
-				//	this.focused.position.z = 25 + 50 * Math.round( ( this.focused.position.z - 25 ) / 50 );
+					//this.focused.position.x = 25 + 50 * Math.round( ( this.focused.position.x - 25 ) / 50 );
+					//this.focused.position.z = 25 + 50 * Math.round( ( this.focused.position.z - 25 ) / 50 );
 
 				});
 
 				EventsControls1.attachEvent( 'mouseUp', function () {
 
-					var x = ( this.focused.position.x - 25 ) / 50;
-					var z = ( this.focused.position.z - 25 ) / 50;
-					
-					var sum = Math.abs( ( x + z ) % 2 );
-					if ( sum == 0 ) { this.returnPrevious() }
 					this.container.style.cursor = 'auto';
 
 				});
 
+				
 				var loader = new THREE.OBJMTLLoader();	
-			loader.load( 'models/bench/Bench3.obj', 'models/bench/Bench3.mtl', 
-						function ( GingerbreadMan ) {
-							GingerbreadMan.position.set( 125, 35, 175 );
-							GingerbreadMan.scale.set( 1/30, 1/30, 1/30 );
-							scene.add( GingerbreadMan );
-							EventsControls1.attach( GingerbreadMan );
+				loader.load( 'models/bench/Bench3.obj', 'models/bench/Bench3.mtl', 
+						function ( Bench ) {
+						var material = new THREE.MeshLambertMaterial( { color: 0x8B4513 } );
+						
+						Bench.traverse( function ( child ) {
+						if ( child instanceof THREE.Mesh ) {
+							child.material = material;
+						}
+
+					} );
+							Bench.position.set( 125, 35, 175 );
+							Bench.scale.set( 1/30, 1/30, 1/30 );
+							scene.add( Bench );
+							EventsControls1.attach( Bench );
 						}
 					);
 
+				loader.load( 'models/objmtl/model.obj', 'models/objmtl/model.mtl', 
+						function ( GingerbreadMan ) {
+							GingerbreadMan.position.set( -125, 35, 175 );
+							GingerbreadMan.scale.set( 1/3, 1/3, 1/3 );							
+							scene.add( GingerbreadMan );
+							EventsControls1.attach( GingerbreadMan );
+						}
+					);				
+					
+					
 
 				var jsonLoader = new THREE.JSONLoader();
 				jsonLoader.load( "models/Tux.js", addModelToScene );
+								
+
+					
+	
+				EventsControls2 = new EventsControls( camera, renderer.domElement );
+				EventsControls2.map = checkerboard;			
+
+				EventsControls2.attachEvent( 'mouseOver', function () {
+
+					this.container.style.cursor = 'pointer';
+
+				});
+
+				EventsControls2.attachEvent( 'mouseOut', function () {
+
+					this.container.style.cursor = 'auto';
+
+				});
+
+				EventsControls2.attachEvent( 'dragAndDrop', function () {
+
+					this.container.style.cursor = 'move';
+					this.focused.position.y = this.previous.y;
+
+				});
+
+								
+					
+				var loader = new THREE.ColladaLoader();	
+				var Scale = new THREE.Vector3( 20, 20, 20 );
+				EventsControls2.scale.copy( Scale );
+				EventsControls2.offsetUse = true;
+				
+					loader.options.convertUpAxis = true;
+					loader.load( 'models/monster/monster.dae', function ( collada ) {
+						var dae = collada.scene;
+						dae.position.set(0,0,0);
+						dae.scale.set( 1/Scale.x, 1/Scale.y, 1/Scale.z );
+						
+						dae.updateMatrix();
+
+						scene.add(dae); 
+						EventsControls2.attach( dae );
+					}); 
+
+	
 
 				EventsControls3 = new EventsControls( camera, renderer.domElement );
 				EventsControls3.attach( checkerboard );
@@ -198,52 +260,7 @@
 					renderer.render(scene, camera);
 
 			}
-
-				
-/*
-				// Sphere
-
-
-
-				var geometry = new THREE.SphereGeometry( 200, 24, 24 );
-				var material = new THREE.MeshLambertMaterial( { color: 0xFFCCFF, side: THREE.DoubleSide, wireframe: true } );
-				Spheree = new THREE.Mesh( geometry, material );
-			//	Spheree.position.x = -400;
-				Spheree.position.y = 0;
-				scene.add ( Spheree );
-
-				EventsControls7 = new EventsControls( camera, renderer.domElement );
-				EventsControls7.map = Spheree;
-
-				EventsControls7.mouseOver = function () {
-					this.container.style.cursor = 'pointer';
-					controls.enabled = false;
-				}
-
-				EventsControls7.mouseOut = function () {
-					this.container.style.cursor = 'auto';				
-					controls.enabled = true;
-				}
-
-				EventsControls7.mouseMove = function() {
-				
-					this.container.style.cursor = 'move';
-					this.focused.lookAt( this.intersectsMap[ 0 ].face.normal );
-					this.focused.position.set( 0, 0, 0 );
-					this.focused.position.copy( this.intersectsMap[ 0 ].point );
-
-				}
-
-				
-				var geometry = new THREE.CylinderGeometry( 0, 20, 100, 3 );
-				geometry.applyMatrix( new THREE.Matrix4().makeTranslation( 0, 50, 0 ) );
-				geometry.applyMatrix( new THREE.Matrix4().makeRotationZ( Math.PI / 2 ) );
-				helper = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: 0xCCCCFF } ) );
-				helper.position.set( -200, 0, 0 );
-				scene.add( helper );
-			
-				EventsControls7.attach( helper );			
-	*/					
+					
 		</script>
 
 	</body>

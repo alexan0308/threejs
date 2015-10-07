@@ -41,6 +41,7 @@ EventsControls = function ( camera, domElement ) {
 	this.event = null;
 	this.offset = new THREE.Vector3();
 	this.offsetUse = false;	
+	this.scale = new THREE.Vector3( 1, 1, 1 );	
 	
 	this._mouse = new THREE.Vector2();
 	this.mouse = new THREE.Vector2();
@@ -247,8 +248,12 @@ EventsControls = function ( camera, domElement ) {
 					_this.intersects = _this.raycaster.intersectObject( _this.map );
 					
 					try {
-						if ( _this.offsetUse ) _this.offset.subVectors( _this.intersects[ 0 ].point, _this.focused.position );
-						//console.log( _this.offset );
+						if ( _this.offsetUse ) { 
+							var pos = new THREE.Vector3().copy( _this.focused.position );		
+								pos.x = pos.x / _this.scale.x; pos.y = pos.y / _this.scale.y; pos.z = pos.z / _this.scale.z;	
+							_this.offset.subVectors( _this.intersects[ 0 ].point, pos );
+							//console.log( _this.offset );
+						}
 						//_this.offset.copy( _this.intersects[ 0 ].point ).sub( _this.map.position );
 					}
 					catch( err ) {}
@@ -274,7 +279,8 @@ EventsControls = function ( camera, domElement ) {
 				_DisplaceIntersectsMap = _this.raycaster.intersectObject( _this.map );
 				//_this._setMap();
 				try {
-					var pos = new THREE.Vector3().copy( _DisplaceIntersectsMap[ 0 ].point.sub( _this.offset ) );
+					var pos = new THREE.Vector3().copy( _DisplaceIntersectsMap[ 0 ].point.sub( _this.offset ) );		
+					pos.x *= _this.scale.x; pos.y *= _this.scale.y; pos.z *= _this.scale.z;			
 					_this.focused.position.copy( pos );
 				}
 				catch( err ) {}
