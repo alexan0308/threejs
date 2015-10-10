@@ -1,7 +1,7 @@
  /** This EventsControls will allow to facilitate development speed for simple manipulations by means of a mouse
  * - point and click, drag and drop.
  * @author Vildanov Almaz / alvild@gmail.com
- * R17 version 08.09.2015.
+ * R18 version 10.10.2015.
  */
 
 // intersects = raycaster.intersectObjects( objects );

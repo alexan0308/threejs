@@ -72,12 +72,9 @@
 
 				// world
 
-				var material = new THREE.MeshBasicMaterial( { color: 0xFFF000, transparent: true, opacity: 0.3 } );
 				var heigthPlane = 160;
-				var geometry = new THREE.PlaneGeometry( 80, heigthPlane, 1, 1 );
-
-				var plane = new THREE.Mesh( geometry, material );
-				plane.visible = false;
+				var geometry = new THREE.PlaneBufferGeometry( 80, heigthPlane, 1, 1 );
+				var plane = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( { visible: false } ) );
 				scene.add( plane );
 
 				var geometry1 = new THREE.CylinderGeometry( 6, 6, heigthRod, 36 );
