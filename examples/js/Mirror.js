@@ -103,13 +103,14 @@ THREE.Mirror = function ( renderer, camera, options ) {
 	} else {
 
 		this.camera = new THREE.PerspectiveCamera();
-		console.log( this.name + ': camera is not a Perspective Camera!' );
+		THREE.log( this.name + ': camera is not a Perspective Camera!' );
 
 	}
 
 	this.textureMatrix = new THREE.Matrix4();
 
 	this.mirrorCamera = this.camera.clone();
+	this.mirrorCamera.matrixAutoUpdate = true;
 
 	this.texture = new THREE.WebGLRenderTarget( width, height );
 	this.tempTexture = new THREE.WebGLRenderTarget( width, height );
@@ -142,6 +143,7 @@ THREE.Mirror = function ( renderer, camera, options ) {
 };
 
 THREE.Mirror.prototype = Object.create( THREE.Object3D.prototype );
+THREE.Mirror.prototype.constructor = THREE.Mirror;
 
 THREE.Mirror.prototype.renderWithMirror = function ( otherMirror ) {
 
