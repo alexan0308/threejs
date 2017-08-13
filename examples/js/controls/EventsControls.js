@@ -40,19 +40,15 @@ EventsControls = function ( camera, domElement ) {
 	this.map = null;
 	this.event = null;
 	this.offset = new THREE.Vector3();
-	this.offsetUse = false;	
-	this.scale = new THREE.Vector3( 1, 1, 1 );	
+	this.offsetUse = false;
 	
 	this._mouse = new THREE.Vector2();
 	this.mouse = new THREE.Vector2();
 	this._vector = new THREE.Vector3();
 	this._direction = new THREE.Vector3();
 
-	this.collidable = false;
+	var _collidable = false;
 	this.collidableEntities = [];
-	this.collision = function () {
-		console.log( 'collision!' );
-	}
 
 
 	// API
@@ -78,6 +74,7 @@ EventsControls = function ( camera, domElement ) {
 	this.mouseUp = function () {} // this.container.style.cursor = 'auto';
 	this.mouseMove = function () {}	
 	this.onclick = function () {}
+	this.collision = function () {}	
 
 	this.attach = function ( object ) {
 
@@ -108,6 +105,7 @@ EventsControls = function ( camera, domElement ) {
 	var _mouseUpFlag = false;
 	var _onclickFlag = false;
 	var _mouseMoveFlag = false;
+	var _collisionFlag = false;
 	
 	this.attachEvent = function ( event, handler ) {
 
@@ -117,7 +115,8 @@ EventsControls = function ( camera, domElement ) {
 			case 'dragAndDrop': 	this.dragAndDrop = handler; 	_dragAndDropFlag = true;	break;
 			case 'mouseUp': 		this.mouseUp = handler; 		_mouseUpFlag = true;		break;
 			case 'onclick': 		this.onclick = handler; 		_onclickFlag = true;		break;
-			case 'mouseMove': 		this.mouseMove = handler; 		_mouseMoveFlag = true;		break;			
+			case 'mouseMove': 		this.mouseMove = handler; 		_mouseMoveFlag = true;		break;
+			case 'collision': 		this.collision = handler; 		_collisionFlag = true;		break;			
 			break;
 		}
 
@@ -132,6 +131,7 @@ EventsControls = function ( camera, domElement ) {
 			case 'mouseUp': 		_mouseUpFlag = false;			break;
 			case 'onclick': 		_onclickFlag = false;			break;
 			case 'mouseMove': 		_mouseMoveFlag = false;			break;
+			case 'collision': 		_collisionFlag = false;		break;					
 			break;
 		}
 
@@ -250,7 +250,6 @@ EventsControls = function ( camera, domElement ) {
 					try {
 						if ( _this.offsetUse ) { 
 							var pos = new THREE.Vector3().copy( _this.focused.position );		
-								pos.x = pos.x / _this.scale.x; pos.y = pos.y / _this.scale.y; pos.z = pos.z / _this.scale.z;	
 							_this.offset.subVectors( _this.intersects[ 0 ].point, pos );
 							//console.log( _this.offset );
 						}
@@ -279,8 +278,7 @@ EventsControls = function ( camera, domElement ) {
 				_DisplaceIntersectsMap = _this.raycaster.intersectObject( _this.map );
 				//_this._setMap();
 				try {
-					var pos = new THREE.Vector3().copy( _DisplaceIntersectsMap[ 0 ].point.sub( _this.offset ) );		
-					pos.x *= _this.scale.x; pos.y *= _this.scale.y; pos.z *= _this.scale.z;			
+					var pos = new THREE.Vector3().copy( _DisplaceIntersectsMap[ 0 ].point.sub( _this.offset ) );			
 					_this.focused.position.copy( pos );
 				}
 				catch( err ) {}
@@ -300,6 +298,7 @@ EventsControls = function ( camera, domElement ) {
 						if ( _DisplacemouseOvered != _this.intersects[ 0 ].object ) {
 							_this.mouseOut();
 							_this.select( _this.intersects[ 0 ].object );
+						//	console.log( '_this.mouseOver();' );
 							_this.mouseOver();
 						}
 					}
@@ -314,25 +313,27 @@ EventsControls = function ( camera, domElement ) {
 			}
 		}
 
-		if ( _this.focused ) {					
-		if ( _this.collidable ) {
-			var originPoint = _this.focused.position.clone();
-			for (var vertexIndex = 0; vertexIndex < _this.focused.geometry.vertices.length; vertexIndex++)	{		
-				var localVertex = _this.focused.geometry.vertices[vertexIndex].clone();
-				var globalVertex = _this.focused.localToWorld( localVertex );
-				var directionVector = new THREE.Vector3().copy( globalVertex );
-				directionVector.sub( _this.focused.position );
+		if ( _this.focused ) {
+			if ( _collisionFlag ) {
+				if (!_collidable) {
+					var originPoint = _this.focused.position.clone();
+					for (var vertexIndex = 0; vertexIndex < _this.focused.geometry.vertices.length; vertexIndex++)	{		
+						var localVertex = _this.focused.geometry.vertices[vertexIndex].clone();
+						var globalVertex = _this.focused.localToWorld( localVertex );
+						var directionVector = new THREE.Vector3().copy( globalVertex );
+						directionVector.sub( _this.focused.position );
 
-				_this.raycaster.set( originPoint, directionVector.clone().normalize() );
-				var collisionResults = _this.raycaster.intersectObjects( _this.collidableEntities );
+						_this.raycaster.set( originPoint, directionVector.clone().normalize() );
+						var collisionResults = _this.raycaster.intersectObjects( _this.collidableEntities, true );
 
-				if ( collisionResults.length > 0 && collisionResults[0].distance < directionVector.length() ) {
-					_this.collision();
-					break;
+						if ( collisionResults.length > 0 && collisionResults[0].distance < directionVector.length() ) {
+							_collidable = true;
+							_this.collision();
+							break;
+						}
+					}
 				}
-
-			}		
-		}
+			}
 		
 		}
 

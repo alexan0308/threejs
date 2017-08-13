@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - Events Controls</title>
+		<meta charset="utf-8">
+		<style>
+			body {
+				margin: 0px;
+				color: #fff;
+				font-family:Monospace;
+				text-align: center;
+				font-size: 15px;
+				line-height: 30px;
+				overflow: hidden;
+			}
+			#info {
+				position: absolute;
+				top: 0px; width: 100%;
+				padding: 15px;
+				z-index:100;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="info">
+			<a href="http://threejs.org" target="_blank">three.js</a> EventsControls (look console)
+		</div>
+
+		<script src="../build/three.min.js"></script>
+
+		<script src="js/libs/stats.min.js"></script>
+
+		<script src="js/controls/OrbitControls.js"></script>		
+		<script src="js/controls/EventsControls.js"></script>
+
+		<script>
+
+
+			var camera, scene, renderer, controls;
+
+			init();
+			animate();
+
+			function init() {
+
+				renderer = new THREE.WebGLRenderer( { antialias: true } ); 
+				renderer.setClearColor( 0x6495ED );
+				renderer.setSize( window.innerWidth, window.innerHeight );				
+				document.body.appendChild( renderer.domElement );
+
+				//
+
+				stats = new Stats();
+				stats.domElement.style.position = 'absolute';
+				stats.domElement.style.top = '0px';
+				stats.domElement.style.zIndex = 100;
+				document.body.appendChild( stats.domElement );
+
+				//
+
+				camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 2000 );
+				camera.position.set( 100, 400, 600 );
+				camera.lookAt( new THREE.Vector3( 0, 0, 0 ) );
+
+				controls = new THREE.OrbitControls( camera, renderer.domElement );
+				controls.rotateSpeed = 1 / 2;
+				controls.noZoom = false;
+				controls.zoomSpeed = 1.2;
+				controls.staticMoving = true;
+				controls.minPolarAngle = Math.PI / 3;
+				controls.maxPolarAngle = Math.PI / 3;
+
+				scene = new THREE.Scene();
+
+				var light = new THREE.DirectionalLight( 0xffffff, 1 );
+				light.position.set( 0, 500, 1000 );
+				scene.add( light );
+
+				var light = new THREE.AmbientLight( 0x222222 );
+				scene.add( light );
+
+
+				// world
+
+				var Texture = new THREE.ImageUtils.loadTexture( 'textures/checkerboard.jpg' );
+				Texture.wrapS = Texture.wrapT = THREE.RepeatWrapping;
+				Texture.repeat.set( 4, 4 );	Texture.offset.set( 0.5, 0 );
+
+				var Material = new THREE.MeshBasicMaterial( { map: Texture, side: THREE.DoubleSide } );
+				var Geometry = new THREE.PlaneGeometry( 400, 400, 1, 1 );
+
+				var checkerboard = new THREE.Mesh( Geometry, Material );
+				checkerboard.position.y = - 1;
+				checkerboard.rotation.x =  Math.PI / 2;
+				scene.add( checkerboard );
+
+
+				EventsControls1 = new EventsControls( camera, renderer.domElement );
+				EventsControls1.map = checkerboard;
+				EventsControls1.offsetUse = true;
+
+				EventsControls1.attachEvent( 'mouseOver', function () {
+
+					this.container.style.cursor = 'pointer';
+
+				});
+
+				EventsControls1.attachEvent( 'mouseOut', function () {
+
+					this.container.style.cursor = 'auto';
+
+				});
+
+				EventsControls1.attachEvent( 'dragAndDrop', function () {
+
+					this.container.style.cursor = 'move';
+					this.focused.position.y = this.previous.y;
+
+				});
+
+				EventsControls1.attachEvent( 'mouseUp', function () {
+
+					this.container.style.cursor = 'auto';
+
+				});
+
+				EventsControls1.attachEvent( 'collision', function () {
+
+					console.log( 'collision!' );
+
+				});
+
+
+				var radius = 20, h = 16, segments = 36;
+				var geometry = new THREE.CylinderGeometry( radius, radius, h, segments );
+				var material = new THREE.MeshPhongMaterial( { color: 0xFFFFF0 } );
+
+				var checker = new THREE.Mesh( geometry, material );
+
+				checker.position.set( -175, h / 2, 175 );
+				scene.add( checker ); EventsControls1.attach( checker );
+
+				var checker = new THREE.Mesh( geometry, material );
+
+				checker.position.set( -75, h / 2, 175 );
+				scene.add( checker ); EventsControls1.attach( checker );
+
+				var object3D = new THREE.Object3D;
+				var mesh = new THREE.Mesh( geometry, material );
+				object3D.add( mesh ); 
+				var mesh = new THREE.Mesh( geometry, material );
+				mesh.position.y = h; mesh.rotation.x = Math.PI / 2; mesh.rotation.z = Math.PI / 2;
+				object3D.add( mesh );
+				object3D.position.set( 25, h / 2, 175 );
+				scene.add( object3D );  EventsControls1.attach( object3D );
+	
+
+	
+	
+				EventsControls1.collidable = true;
+				var geometry = new THREE.CylinderGeometry( radius, radius, h, segments );
+				var material = new THREE.MeshPhongMaterial( { color: 0x9B2D30 } );
+
+				var checker = new THREE.Mesh( geometry, material ); checker.name = 'checker';
+
+				checker.position.set( -125, h / 2, -25 );
+				scene.add( checker ); EventsControls1.collidableEntities.push( checker );
+
+				
+				var object3D = new THREE.Object3D; object3D.name = 'two checkers';
+				var mesh = new THREE.Mesh( geometry, material.clone() );
+				object3D.add( mesh ); mesh.name = 'bottom checker';
+				var mesh = new THREE.Mesh( geometry, material.clone() );
+				mesh.position.y = h; mesh.rotation.x = Math.PI / 2; mesh.rotation.z = Math.PI / 2;
+				object3D.add( mesh );  mesh.name = 'top checker';
+				object3D.position.set( -25, h / 2, -25 );				
+				scene.add( object3D );  EventsControls1.collidableEntities.push( object3D );
+
+
+
+		
+
+				EventsControls5 = new EventsControls( camera, renderer.domElement );
+				EventsControls5.attach( checkerboard );
+
+				EventsControls5.attachEvent( 'mouseOver', function () {
+
+					controls.enabled = false;
+					controls.target0.copy( controls.target );
+					controls.position0.copy( controls.object.position );
+
+				});
+
+				EventsControls5.attachEvent( 'mouseOut', function () {
+
+					controls.reset();
+					controls.target.copy( controls.target0 );
+					controls.object.position.copy( controls.position0 );
+					controls.update();
+					controls.enabled = true;
+
+				});
+
+			}
+
+			function animate() {
+
+					requestAnimationFrame(animate);
+					render();
+
+			}
+
+
+			function render() {
+
+					stats.update();
+					controls.update();
+					renderer.render(scene, camera);
+
+			}
+
+		</script>
+
+	</body>
+</html>
