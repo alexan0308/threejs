@@ -91,11 +91,13 @@
 
 				// world
 
-				var Texture = new THREE.ImageUtils.loadTexture( 'textures/checkerboard.jpg' );
-				Texture.wrapS = Texture.wrapT = THREE.RepeatWrapping;
-				Texture.repeat.set( 4, 4 );	Texture.offset.set( 0.5, 0 );
+				var map = new THREE.TextureLoader().load( 'textures/checkerboard.jpg' );
+				map.wrapS = map.wrapT = THREE.RepeatWrapping;
+				map.repeat.set( 4, 4 );
+				map.anisotropy = 32; // качество текстуры
+				map.offset.set( 0.5, 0 );
 
-				var Material = new THREE.MeshBasicMaterial( { map: Texture, side: THREE.DoubleSide } );
+				var Material = new THREE.MeshBasicMaterial( { map: map, side: THREE.DoubleSide } );
 				var Geometry = new THREE.PlaneBufferGeometry( 400, 400, 1, 1 );
 
 				var checkerboard = new THREE.Mesh( Geometry, Material );
@@ -207,17 +209,14 @@
 
 								
 					
-				var loader = new THREE.ColladaLoader();	
-				var Scale = new THREE.Vector3( 20, 20, 20 );
-				EventsControls2.scale.copy( Scale );
+				var loader = new THREE.ColladaLoader();
 				EventsControls2.offsetUse = true;
 				
 					loader.options.convertUpAxis = true;
 					loader.load( 'models/monster/monster.dae', function ( collada ) {
 						var dae = collada.scene;
 						dae.position.set(0,0,0);
-						dae.scale.set( 1/Scale.x, 1/Scale.y, 1/Scale.z );
-						
+						dae.scale.set(1/10,1/10,1/10);
 						dae.updateMatrix();
 
 						scene.add(dae); 

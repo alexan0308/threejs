@@ -68,12 +68,13 @@ EventsControls = function ( camera, domElement ) {
 		}
 	}
 
-	this.dragAndDrop = function () {} // example: this.container.style.cursor = 'move'; 
-	this.mouseOver = function () {} // example: this.container.style.cursor = 'pointer';
-	this.mouseOut = function () {} // example: this.container.style.cursor = 'auto';
-	this.mouseUp = function () {} // example: this.container.style.cursor = 'auto';
+	this.dragAndDrop = function () {} // this.container.style.cursor = 'move'; 
+	this.mouseOver = function () {} // this.container.style.cursor = 'pointer';
+	this.mouseOut = function () {} // this.container.style.cursor = 'auto';
+	this.mouseUp = function () {} // this.container.style.cursor = 'auto';
 	this.mouseMove = function () {}	
 	this.onclick = function () {}
+	this.collision = function () {}	
 
 	this.attach = function ( object ) {
 
@@ -104,6 +105,7 @@ EventsControls = function ( camera, domElement ) {
 	var _mouseUpFlag = false;
 	var _onclickFlag = false;
 	var _mouseMoveFlag = false;
+	var _collisionFlag = false;
 	
 	this.attachEvent = function ( event, handler ) {
 
@@ -113,7 +115,8 @@ EventsControls = function ( camera, domElement ) {
 			case 'dragAndDrop': 	this.dragAndDrop = handler; 	_dragAndDropFlag = true;	break;
 			case 'mouseUp': 		this.mouseUp = handler; 		_mouseUpFlag = true;		break;
 			case 'onclick': 		this.onclick = handler; 		_onclickFlag = true;		break;
-			case 'mouseMove': 		this.mouseMove = handler; 		_mouseMoveFlag = true;		break;		
+			case 'mouseMove': 		this.mouseMove = handler; 		_mouseMoveFlag = true;		break;
+			case 'collision': 		this.collision = handler; 		_collisionFlag = true;		break;			
 			break;
 		}
 
@@ -127,7 +130,8 @@ EventsControls = function ( camera, domElement ) {
 			case 'dragAndDrop': 	_dragAndDropFlag = false;		break;
 			case 'mouseUp': 		_mouseUpFlag = false;			break;
 			case 'onclick': 		_onclickFlag = false;			break;
-			case 'mouseMove': 		_mouseMoveFlag = false;			break;				
+			case 'mouseMove': 		_mouseMoveFlag = false;			break;
+			case 'collision': 		_collisionFlag = false;		break;					
 			break;
 		}
 
@@ -227,32 +231,6 @@ EventsControls = function ( camera, domElement ) {
 			if ( _mouseMoveFlag ) _this.mouseMove();
 		}
 	}
-	
-	function getTouchPos( event ) {
-		if ( _this.enabled ) {
-			event = event.changedTouches[ 0 ];
-			var x = event.offsetX == undefined ? event.layerX : event.offsetX;
-			var y = event.offsetY == undefined ? event.layerY : event.offsetY;	
-
-			_this._mouse.x = ( ( x ) / _this.container.width ) * 2 - 1;
-			_this._mouse.y = - ( ( y ) / _this.container.height ) * 2 + 1;
-			
-			onContainerMouseMove();
-			if ( _mouseMoveFlag ) _this.mouseMove();
-		}
-	}
-
-	function getTouchPos2( event ) {
-		if ( _this.enabled ) {
-			event = event.changedTouches[ 0 ];
-			var x = event.offsetX == undefined ? event.layerX : event.offsetX;
-			var y = event.offsetY == undefined ? event.layerY : event.offsetY;	
-
-			_this._mouse.x = ( ( x ) / _this.container.width ) * 2 - 1;
-			_this._mouse.y = - ( ( y ) / _this.container.height ) * 2 + 1;
-			
-		}
-	}		
 
 	function onContainerMouseDown( event ) {
 
@@ -290,44 +268,6 @@ EventsControls = function ( camera, domElement ) {
 		}
 	}
 
-	function onContainerTouchDown( event ) {
-
-		event = event.changedTouches[ 0 ];
-		getTouchPos2( event );
-		if ( _this.enabled && ( _onclickFlag || _dragAndDropFlag ) ) { 	
-			if ( _this.focused ) { return; }
-			_this._raySet();
-			_this.intersects = _this.raycaster.intersectObjects( _this.objects, true );
-
-			if ( _this.intersects.length > 0 ) {
-
-				_this.event = _this.intersects[ 0 ];
-				_this.setFocus( _this.intersects[ 0 ].object );
-
-				if ( _dragAndDropFlag ) {
-					_this.intersects = _this.raycaster.intersectObject( _this.map );
-					
-					try {
-						if ( _this.offsetUse ) { 
-							var pos = new THREE.Vector3().copy( _this.focused.position );		
-							_this.offset.subVectors( _this.intersects[ 0 ].point, pos );
-							//console.log( _this.offset );
-						}
-						//_this.offset.copy( _this.intersects[ 0 ].point ).sub( _this.map.position );
-					}
-					catch( err ) {}
-
-				}
-
-				_this.onclick();
-
-			}
-			else {
-				_this.removeFocus(); _this.event = null;
-			}
-		}
-	}	
-	
 	function onContainerMouseMove() {
 
 		_this._raySet();
@@ -372,6 +312,32 @@ EventsControls = function ( camera, domElement ) {
 				}
 			}
 		}
+
+		if ( _this.focused ) {
+			if ( _collisionFlag ) {
+				if (!_collidable) {
+					var originPoint = _this.focused.position.clone();
+					for (var vertexIndex = 0; vertexIndex < _this.focused.geometry.vertices.length; vertexIndex++)	{		
+						var localVertex = _this.focused.geometry.vertices[vertexIndex].clone();
+						var globalVertex = _this.focused.localToWorld( localVertex );
+						var directionVector = new THREE.Vector3().copy( globalVertex );
+						directionVector.sub( _this.focused.position );
+
+						_this.raycaster.set( originPoint, directionVector.clone().normalize() );
+						var collisionResults = _this.raycaster.intersectObjects( _this.collidableEntities, true );
+
+						if ( collisionResults.length > 0 && collisionResults[0].distance < directionVector.length() ) {
+							_collidable = true;
+							_this.collision();
+							break;
+						}
+					}
+				}
+			}
+		
+		}
+
+	//}
 	}
 
 	function onContainerMouseUp( event ) {
@@ -388,13 +354,8 @@ EventsControls = function ( camera, domElement ) {
 
 	}
 
-	
-	
 	this.container.addEventListener( 'mousedown', onContainerMouseDown, false );	// мышка нажата
 	this.container.addEventListener( 'mousemove', getMousePos, false );   // получение координат мыши
 	this.container.addEventListener( 'mouseup', onContainerMouseUp, false );       // мышка отпущена
-	this.container.addEventListener( 'touchstart', onContainerTouchDown, false );
-	this.container.addEventListener( 'touchmove', getTouchPos, false );	
-	
-		
+
 };
