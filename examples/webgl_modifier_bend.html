@@ -63,7 +63,7 @@
 
 				controls.minDistance = 50;
 				controls.maxDistance = 2500;
-				
+
 				controls.enableDamping = true;
 
 				// scene itself
@@ -72,7 +72,6 @@
 
 				scene.add( ambientLight );
 				scene.add( light );
-			
 
 				var direction = new THREE.Vector3( 0, 0, -1 );
 				var axis =  new THREE.Vector3( 0, 1, 0 );
@@ -98,7 +97,7 @@
 								bevelThickness: 2, 
 								bevelSize: 1, 
 							});
-					
+
 					var text_Material = new THREE.MeshPhongMaterial( { color: 0x62254a } );
 
 					modifier.set( direction, axis, angle ).modify( text_geometry );
