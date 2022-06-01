@@ -189,8 +189,10 @@
 				var material = new THREE.MeshPhongMaterial( { color: 0x9B2D30 } );
 
 				var checker = new THREE.Mesh( geometry, material ); checker.name = 'checker';
-
 				checker.position.set( -125, h / 2, 125 );
+				var checker2 = new THREE.Mesh( geometry, material ); checker2.name = 'checker2';
+				checker2.position.set( -95, h / 2, 125 );
+				
 				scene.add( checker ); EventsControls2.attach( checker );
 
 				
