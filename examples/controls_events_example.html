@@ -251,7 +251,7 @@
 				var geometry = new THREE.PlaneGeometry( 100, 160, 16, 16 );
 				Texture.wrapS = Texture.wrapT = THREE.RepeatWrapping;
 
-				var material = new THREE.MeshLambertMaterial( { map: Texture , side: THREE.DoubleSide } );;
+				var material = new THREE.MeshLambertMaterial( { map: texture , side: THREE.DoubleSide } );;
 
 				var fence = new THREE.Mesh( geometry, material );
 
