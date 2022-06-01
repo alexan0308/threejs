@@ -82,11 +82,12 @@
 
 				// world
 
-				var Texture = new THREE.ImageUtils.loadTexture( 'textures/checkerboard.jpg' );
-				Texture.wrapS = Texture.wrapT = THREE.RepeatWrapping;
-				Texture.repeat.set( 4, 4 );	Texture.offset.set( 0.5, 0 );
+				var textureLoader = new THREE.TextureLoader();
+				var texture = textureLoader.load( 'textures/checkerboard.jpg' );
+				texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+				texture.repeat.set( 4, 4 );	texture.offset.set( 0.5, 0 );
 
-				var Material = new THREE.MeshBasicMaterial( { map: Texture, side: THREE.DoubleSide } );
+				var Material = new THREE.MeshBasicMaterial( { map: texture, side: THREE.DoubleSide } );
 				var Geometry = new THREE.PlaneGeometry( 400, 400, 1, 1 );
 
 				var checkerboard = new THREE.Mesh( Geometry, Material );
