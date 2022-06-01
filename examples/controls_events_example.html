@@ -246,8 +246,9 @@
 				});					
 
 
+				var textureLoader = new THREE.TextureLoader();
+				var texture = textureLoader.load( 'textures/crate.gif' );
 				var geometry = new THREE.PlaneGeometry( 100, 160, 16, 16 );
-				var Texture = new THREE.ImageUtils.loadTexture(  'textures/crate.gif' );
 				Texture.wrapS = Texture.wrapT = THREE.RepeatWrapping;
 
 				var material = new THREE.MeshLambertMaterial( { map: Texture , side: THREE.DoubleSide } );;
