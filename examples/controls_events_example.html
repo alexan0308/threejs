@@ -61,7 +61,7 @@
 				camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 2000 );
 				camera.position.set( 100, 400, 600 );
 				camera.lookAt( new THREE.Vector3( 0, 0, 0 ) );
-
+/*
 				controls = new THREE.OrbitControls( camera, renderer.domElement );
 				controls.rotateSpeed = 1 / 2;
 				controls.noZoom = false;
@@ -69,7 +69,7 @@
 				controls.staticMoving = true;
 				controls.minPolarAngle = Math.PI / 3;
 				controls.maxPolarAngle = Math.PI / 3;
-
+*/
 				scene = new THREE.Scene();
 
 				var light = new THREE.DirectionalLight( 0xffffff, 1 );
@@ -282,7 +282,7 @@
 				EventsControls4.attach( man );
 				
 				
-
+/*
 				EventsControls5 = new EventsControls( camera, renderer.domElement );
 				EventsControls5.attach( checkerboard );
 
@@ -303,6 +303,7 @@
 					controls.enabled = true;
 
 				});
+				*/
 
 			}
 
@@ -394,7 +395,7 @@
 			function render() {
 
 					stats.update();
-					controls.update();
+					//controls.update();
 					renderer.render(scene, camera);
 
 			}
