@@ -249,7 +249,7 @@
 				var textureLoader = new THREE.TextureLoader();
 				var texture = textureLoader.load( 'textures/crate.gif' );
 				var geometry = new THREE.PlaneGeometry( 100, 160, 16, 16 );
-				Texture.wrapS = Texture.wrapT = THREE.RepeatWrapping;
+				texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
 
 				var material = new THREE.MeshLambertMaterial( { map: texture , side: THREE.DoubleSide } );;
 
