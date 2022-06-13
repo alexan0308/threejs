@@ -173,7 +173,7 @@ class EventControls extends EventDispatcher {
                       _selected.position.copy( _intersection.sub( _offset ).applyMatrix4( _inverseMatrix ) ); //.sub( scope.offset ) ); //_selected.position.y = scope.previous.y;
                       scope.dragAndDrop(); 
                     }
-                  _offset.x =  _offset.x * 0.9; _offset.z =  _offset.z * 0.9;
+                  //_offset.x =  _offset.x * 0.9; _offset.z =  _offset.z * 0.9;
                   _domElement.style.cursor = 'move';
 				}
 
