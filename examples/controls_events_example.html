@@ -1,84 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>three.js webgl - Events Controls</title>
+		<title>three.js webgl - drag controls</title>
 		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link type="text/css" rel="stylesheet" href="main.css">
 		<style>
 			body {
-				margin: 0px;
-				color: #fff;
-				font-family:Monospace;
-				text-align: center;
-				font-size: 15px;
-				line-height: 30px;
-				overflow: hidden;
+				background-color: #f0f0f0;
+				color: #444;
 			}
-			#info {
-				position: absolute;
-				top: 0px; width: 100%;
-				padding: 15px;
-				z-index:100;
+			a {
+				color: #08f;
 			}
 		</style>
 	</head>
 	<body>
 		<div id="info">
-			<a href="http://threejs.org" target="_blank">three.js</a> EventsControls (look console)
+			<a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> webgl - event controls<br />
 		</div>
 
-		<script src="https://threejs.org/build/three.min.js"></script>
+		<!-- Import maps polyfill -->
+		<!-- Remove this when import maps will be widely supported -->
+		<script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
 
-		<script src="js/libs/stats.min.js"></script>
+		<script type="importmap">
+			{
+				"imports": {
+					"three": "https://threejs.org/build/three.module.js"
+				}
+			}
+		</script>
 
-		<!--<script src="js/controls/OrbitControls.js"></script>-->	
-		<script src="js/controls/EventsControls.js"></script>
+		<script type="module">
 
-		<script>
+			import * as THREE from 'three';
 
+			import { EventControls } from './js/controls/EventControls.js';
+			import { OrbitControls } from 'https://threejs.org/examples/jsm/controls/OrbitControls.js'
+          
+			let container;
+			let camera, scene, renderer;
+			var orbitcontrol, eventControl, eventControl2;
+            var radius = 10, group; var cameraPolarAngle = Math.PI/3;
 
-			var camera, scene, renderer, controls;
+			const dragObjects = [], redDragObjects = [];
 
 			init();
-			animate();
 
+ 			window.onload = function() { render(); }
+ 
 			function init() {
 
-				renderer = new THREE.WebGLRenderer( { antialias: true } ); 
-				renderer.setClearColor( 0x6495ED );
-				renderer.setSize( window.innerWidth, window.innerHeight );				
-				document.body.appendChild( renderer.domElement );
-
-				//
-
-				stats = new Stats();
-				stats.domElement.style.position = 'absolute';
-				stats.domElement.style.top = '0px';
-				stats.domElement.style.zIndex = 100;
-				document.body.appendChild( stats.domElement );
-
-				//
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
 
 				camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 2000 );
-				camera.position.set( 100, 400, 800 );
+				camera.position.set( 0, 900 * Math.tan( Math.PI/2 - cameraPolarAngle ), 900 );
 				camera.lookAt( new THREE.Vector3( 0, 0, 0 ) );
-/*
-				controls = new THREE.OrbitControls( camera, renderer.domElement );
-				controls.rotateSpeed = 1 / 2;
-				controls.noZoom = false;
-				controls.zoomSpeed = 1.2;
-				controls.staticMoving = true;
-				controls.minPolarAngle = Math.PI / 3;
-				controls.maxPolarAngle = Math.PI / 3;
-*/
+
 				scene = new THREE.Scene();
+				scene.background = new THREE.Color( 0xf0f0f0 );
 
-				var light = new THREE.DirectionalLight( 0xffffff, 1 );
-				light.position.set( 0, 500, 1000 );
+				scene.add( new THREE.AmbientLight( 0x505050 ) );
+
+				const light = new THREE.SpotLight( 0xffffff, 1.5 );
+				light.position.set( 300, 100, 1400 );
+				light.angle = Math.PI / 9;
+
+				light.castShadow = true;
+				light.shadow.camera.near = 500;
+				light.shadow.camera.far = 1000;
+				light.shadow.mapSize.width = 1024;
+				light.shadow.mapSize.height = 1024;
+
 				scene.add( light );
 
-				var light = new THREE.AmbientLight( 0x222222 );
-				scene.add( light );
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+              
+				//renderer.setSize( 1200, 600 );
+              
+				renderer.shadowMap.enabled = true;
+				renderer.shadowMap.type = THREE.PCFShadowMap;
 
+				container.appendChild( renderer.domElement );
+              
+				// CONTROLS   //управление событиями
+				orbitcontrol = new OrbitControls( camera, renderer.domElement );
+				orbitcontrol.addEventListener( 'change', render );
+				orbitcontrol.rotateSpeed = 0.1; 
+				orbitcontrol.enableZoom = true;  
+				orbitcontrol.zoomSpeed = 0.2;  
+
+				orbitcontrol.minDistance = 500;
+				orbitcontrol.maxDistance = 1300;
+                orbitcontrol.minPolarAngle = cameraPolarAngle; // radians
+				orbitcontrol.maxPolarAngle = cameraPolarAngle; // radians
+              
+				orbitcontrol.minAzimuthAngle = - Math.PI/12; // radians
+				orbitcontrol.maxAzimuthAngle = Math.PI/12; // radians
 
 				// world
 
@@ -94,315 +116,168 @@
 				checkerboard.position.y = - 1;
 				checkerboard.rotation.x =  Math.PI / 2;
 				scene.add( checkerboard );
-
-
-				EventsControls1 = new EventsControls( camera, renderer.domElement );
-				EventsControls1.map = checkerboard;
-
-				EventsControls1.attachEvent( 'mouseOver', function () {
-
-					this.container.style.cursor = 'pointer';
-
-				});
-
-				EventsControls1.attachEvent( 'mouseOut', function () {
-
-					this.container.style.cursor = 'auto';
-
-				});
-
-				EventsControls1.attachEvent( 'dragAndDrop', function () {
-
-					this.container.style.cursor = 'move';
-					this.focused.position.y = this.previous.y;
-
-				});
-
-				EventsControls1.attachEvent( 'mouseUp', function () {
-
-					this.container.style.cursor = 'auto';
-
-				});
-
+              
+              
 				var radius = 20, h = 16, segments = 36;
 				var geometry = new THREE.CylinderGeometry( radius, radius, h, segments );
 				var material = new THREE.MeshPhongMaterial( { color: 0xFFFFF0 } );
 
-				var checker = new THREE.Mesh( geometry, material );
+				let checker = new THREE.Mesh( geometry, material );
 
 				checker.position.set( -175, h / 2, 175 );
-				scene.add( checker ); EventsControls1.attach( checker );
+				scene.add( checker ); dragObjects.push( checker );
 
-				var checker = new THREE.Mesh( geometry, material );
+				let checker2 = new THREE.Mesh( geometry, material );
 
-				checker.position.set( -75, h / 2, 175 );
-				scene.add( checker ); EventsControls1.attach( checker );
-
-				var object3D = new THREE.Object3D;
-				var mesh = new THREE.Mesh( geometry, material );
-				object3D.add( mesh ); 
-				var mesh = new THREE.Mesh( geometry, material );
-				mesh.position.y = h; mesh.rotation.x = Math.PI / 2; mesh.rotation.z = Math.PI / 2;
-				object3D.add( mesh );
-				object3D.position.set( 25, h / 2, 175 );
-				scene.add( object3D );  EventsControls1.attach( object3D );
-	
-
-				EventsControls2 = new EventsControls( camera, renderer.domElement );
-				EventsControls2.map = checkerboard;
-
-				EventsControls2.attachEvent( 'mouseOver', function () {
-
-					this.container.style.cursor = 'pointer';
-
-				});
-
-				EventsControls2.attachEvent( 'mouseOut', function () {
-
-					this.container.style.cursor = 'auto';
-
-				});
-
-				EventsControls2.attachEvent( 'dragAndDrop', function () {
-
-					this.container.style.cursor = 'move';
-					this.focused.position.y = this.previous.y;
-					this.focused.position.x = 25 + 50 * Math.round( ( this.focused.position.x - 25 ) / 50 );
-					this.focused.position.z = 25 + 50 * Math.round( ( this.focused.position.z - 25 ) / 50 );
-
-				});
-
-				EventsControls2.attachEvent( 'mouseUp', function () {
-
-					var x = ( this.focused.position.x - 25 ) / 50;
-					var z = ( this.focused.position.z - 25 ) / 50;
-
-					var sum = Math.abs( ( x + z ) % 2 );
-					if ( sum == 0 ) { this.returnPrevious() }
-					this.container.style.cursor = 'auto';
-
-				});
-
-
-				var radius = 20, h = 16, segments = 36;
-				var geometry = new THREE.CylinderGeometry( radius, radius, h, segments );
-				var material = new THREE.MeshPhongMaterial( { color: 0x9B2D30 } );
-
-				var checker = new THREE.Mesh( geometry, material ); checker.name = 'checker';
-				checker.position.set( -75, h / 2, 75 );
-				var checker2 = new THREE.Mesh( geometry, material ); checker2.name = 'checker2';
-				checker2.position.set( 25, h / 2, 75 );
-				
-				scene.add( checker ); EventsControls2.attach( checker );
-				scene.add( checker2 ); EventsControls2.attach( checker2 );
-				
-				var object3D = new THREE.Object3D; object3D.name = 'two checkers';
-				var mesh = new THREE.Mesh( geometry, material.clone() );
-				object3D.add( mesh ); mesh.name = 'bottom checker';
-				var mesh = new THREE.Mesh( geometry, material.clone() );
-				mesh.position.y = h; mesh.rotation.x = Math.PI / 2; mesh.rotation.z = Math.PI / 2;
-				object3D.add( mesh );  mesh.name = 'top checker';
-				object3D.position.set( -25, h / 2, 125 );				
-			//	scene.add( object3D );  EventsControls2.attach( object3D );
-
-
-				EventsControls3 = new EventsControls( camera, renderer.domElement );
-				EventsControls3.map = checkerboard;
-
-				EventsControls3.attachEvent( 'mouseOver', function () {
-
-					this.container.style.cursor = 'pointer';
-
-				});
-
-				EventsControls3.attachEvent( 'mouseOut', function () {
-
-					this.container.style.cursor = 'auto';
-
-				});
-
-				EventsControls3.attachEvent( 'dragAndDrop', function () {
-
-					this.container.style.cursor = 'move';
-					this.focused.position.y = 60;
-					this.focused.position.x = 50 * Math.round( ( this.focused.position.x - 25 ) / 50 );
-					this.focused.position.z = 50 * Math.round( ( this.focused.position.z - 25 ) / 50 );
-
-				});
-
-				EventsControls3.attachEvent( 'onclick', function () {
-
-					var mesh = new THREE.Mesh( this.focused.geometry.clone(), this.focused.material.clone() );
-					mesh.position.copy( this.focused.position );
-					mesh.material.transparent = true; mesh.material.opacity = 0.7;
-					scene.add( mesh );
-					this.setFocus( mesh );
-
-				});
-
-				EventsControls3.attachEvent( 'mouseUp', function () {
-
-					this.focused.material.transparent = false;
-					this.container.style.cursor = 'auto';
-
-				});					
-
-
-				var textureLoader = new THREE.TextureLoader();
-				var texture = textureLoader.load( 'textures/crate.gif' );
-				var geometry = new THREE.PlaneGeometry( 100, 160, 16, 16 );
-				texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-
-				var material = new THREE.MeshLambertMaterial( { map: texture , side: THREE.DoubleSide } );;
-
-				var fence = new THREE.Mesh( geometry, material );
-
-				fence.position.set( -175, 40, 75 ); fence.scale.set( 1/2, 1/2, 1/2 );
-				scene.add( fence ); EventsControls3.attach( fence );
-
-
-				// Snowman
-
-
-				EventsControls4 = new EventsControls( camera, renderer.domElement );
-
-				EventsControls4.attachEvent( 'onclick', function () {
-
-					console.log('/--------------------/');
-					console.log( 'this.focused.name: ' + this.focused.name );
-					if ( this.focusedChild != null ) console.log( 'this.focusedChild.name: ' + this.focusedChild.name )
-						else  console.log( 'this.focusedChild is null' );
-
-					console.log( 'this.event.distance: ' + this.event.distance );
-					console.log( 'this.event.point: (' + this.event.point.x + ', ' + this.event.point.y + ', ' + this.event.point.z + ')' );
-
-				});
-
-
-				var man = createSnowman(); 
+				checker2.position.set( -75, h / 2, 175 );
+				scene.add( checker2 ); dragObjects.push( checker2 );             
+              
+				var man = createSnowman();
 				man.position.set( 175, 0, 75 );
 				scene.add( man );
+				dragObjects.push( man );              
+                  
+				eventControl = new EventControls( [ ... dragObjects ], camera, renderer.domElement );
+				eventControl.setDraggable( render, true );              
+                eventControl.setMap ( checkerboard );
+                eventControl.setOrbitControl( orbitcontrol );
 
-				EventsControls4.attach( man );
-				
-				
-/*
-				EventsControls5 = new EventsControls( camera, renderer.domElement );
-				EventsControls5.attach( checkerboard );
+              
+				var material = new THREE.MeshPhongMaterial( { color: 0xB22222 } );            
+				let red_checker = new THREE.Mesh( geometry, material );
 
-				EventsControls5.attachEvent( 'mouseOver', function () {
+				red_checker.position.set( 125, h / 2, 175 );
+				scene.add( red_checker ); redDragObjects.push( red_checker ); 
+              
+				let red_checker2 = new THREE.Mesh( geometry, material );              
+				red_checker2.position.set( 25, h / 2, 175 );
+				scene.add( red_checker2 ); redDragObjects.push( red_checker2 );
+              
+				eventControl2 = new EventControls( [ ... redDragObjects ], camera, renderer.domElement );
+				eventControl2.setDraggable( render, true );              
+                eventControl2.setMap ( checkerboard );
+                eventControl2.setOrbitControl( orbitcontrol );
 
-					controls.enabled = false;
-					controls.target0.copy( controls.target );
-					controls.position0.copy( controls.object.position );
-
-				});
-
-				EventsControls5.attachEvent( 'mouseOut', function () {
-
-					controls.reset();
-					controls.target.copy( controls.target0 );
-					controls.object.position.copy( controls.position0 );
-					controls.update();
-					controls.enabled = true;
-
-				});
-				*/
-
-			}
-
-			function createSnowman() {
-
-					var Snowman = new THREE.Object3D();
-
-					var	material =  new THREE.MeshBasicMaterial({color: 0x33CCFF});
-					var geometry = new THREE.SphereGeometry( 30, 36, 36 );
-					var sphere1 = new THREE.Mesh( geometry, material);
-					sphere1.position.set( 0, 30, 0 ); sphere1.name = 'sphere1';
-					Snowman.add( sphere1 );
-
-
-					var	material =  new THREE.MeshBasicMaterial({color: 0x00edff});
-					var geometry = new THREE.SphereGeometry( 22, 36, 36 );
-					var sphere2 = new THREE.Mesh( geometry, material);
-					sphere2.position.set( 0, 70, 0 ); sphere2.name = 'sphere2';
-					Snowman.add( sphere2 ); 
-
-
-					var	material =  new THREE.MeshBasicMaterial({color: 0xafeeee});
-					var geometry = new THREE.SphereGeometry( 16, 36, 36 );
-					var sphere3 = new THREE.Mesh( geometry, material);
-					sphere3.position.set( 0, 103, 0 );	sphere3.name = 'sphere3';
-					Snowman.add( sphere3 );
-
-	
-					var	material =  new THREE.MeshBasicMaterial({color: 0x1560bd});
-					var geometry = new THREE.SphereGeometry( 8, 16, 16 );
-					var sphere4 = new THREE.Mesh( geometry, material);
-					sphere4.position.set( -25, 78, 0 );		
-					Snowman.add( sphere4 ); sphere4.name = 'hand right';
-	
-					sphere5 = new THREE.Mesh( geometry, material);	
-					sphere5.position.set( 25, 78, 0 );	
-					Snowman.add( sphere5 ); sphere5.name = 'hand left';
-
-					// нос
-
-					var	material = new THREE.MeshLambertMaterial( {color: 0xf36223} );
-					var geometry = new THREE.CylinderGeometry( 1, 4, 20, 16 );
-					var nose = new THREE.Mesh( geometry, material);
-					nose.position.set(0, 101, 23); nose.rotation.x = Math.PI / 2;
-					nose.name = 'nose';
-					Snowman.add( nose );
-
-					// ведро
+				eventControl2.attachEvent( 'dragAndDrop', function () {
    
-					var	material = new THREE.MeshLambertMaterial({color: 0x6600ff}); 
-					var geometry = new THREE.CylinderGeometry( 12, 17, 30, 24 ); 
-					var bucket = new THREE.Mesh( geometry, material);	 		
-					bucket.position.set(0, 125, -6 );  bucket.rotation.x = -Math.PI/11;
-					Snowman.add( bucket ); bucket.name = 'bucket';
+					this.event.object.position.x = 25 + 50 * Math.round( ( this.event.object.position.x - 25 ) / 50 );
+					this.event.object.position.z = 25 + 50 * Math.round( ( this.event.object.position.z - 25 ) / 50 );
+                  
+				});
 
-					// глаза
-					var	material = new THREE.MeshLambertMaterial({color: 0x000000});
-					var geometry = new THREE.SphereGeometry( 3, 25, 5 );
-					var eye1 = new THREE.Mesh( geometry, material);
-					eye1.position.set( -8, 105, 13 ); eye1.name = 'eye1';
-					Snowman.add( eye1 );
+              
+              //
 
-					var eye2 = new THREE.Mesh( geometry, material);	
-					eye2.position.set( 8, 105, 13 ); eye2.name = 'eye2';
-					Snowman.add( eye2 );
-
-					// рот
-					var	material = new THREE.MeshBasicMaterial({color: 0x560319});
-					var geometry = new THREE.CircleGeometry( 5, 5, 0, Math.PI );
-					var mouth = new THREE.Mesh( geometry, material);
-					mouth.rotation.z = Math.PI;
-					mouth.position.set( 0, 97, 13 );
-					Snowman.add( mouth ); 
-
-					Snowman.name = 'Snowman';
-					return Snowman;
+				window.addEventListener( 'resize', onWindowResize );
 
 			}
 
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+				render();
+
+			}
 
 			function animate() {
 
-					requestAnimationFrame(animate);
-					render();
+				requestAnimationFrame( animate );
+				render();
 
 			}
-
 
 			function render() {
 
-					stats.update();
-					//controls.update();
-					renderer.render(scene, camera);
+				renderer.render( scene, camera );
 
 			}
+          
+
+          	function getRandomInt(min, max) {
+                min = Math.ceil(min);
+                max = Math.floor(max);
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+          
+          	function createSnowman() {
+
+                var Snowman = new THREE.Group();
+
+                var	material =  new THREE.MeshBasicMaterial({color: 0x33CCFF});
+                var geometry = new THREE.SphereGeometry( 30, 36, 36 );
+                var sphere1 = new THREE.Mesh( geometry, material);
+                sphere1.position.set( 0, 30, 0 ); sphere1.name = 'sphere1';
+                Snowman.add( sphere1 );
+
+                var	material =  new THREE.MeshBasicMaterial({color: 0x00edff});
+                var geometry = new THREE.SphereGeometry( 22, 36, 36 );
+                var sphere2 = new THREE.Mesh( geometry, material);
+                sphere2.position.set( 0, 70, 0 ); sphere2.name = 'sphere2';
+                Snowman.add( sphere2 ); 
+
+                var	material =  new THREE.MeshBasicMaterial({color: 0xafeeee});
+                var geometry = new THREE.SphereGeometry( 16, 36, 36 );
+                var sphere3 = new THREE.Mesh( geometry, material);
+                sphere3.position.set( 0, 103, 0 );	sphere3.name = 'sphere3';
+                Snowman.add( sphere3 );
+	
+                var	material =  new THREE.MeshBasicMaterial({color: 0x1560bd});
+                var geometry = new THREE.SphereGeometry( 8, 16, 16 );
+                var sphere4 = new THREE.Mesh( geometry, material);
+                sphere4.position.set( -25, 78, 0 );		
+                Snowman.add( sphere4 ); sphere4.name = 'hand right';
+	
+                var	sphere5 = new THREE.Mesh( geometry, material);	
+                sphere5.position.set( 25, 78, 0 );	
+                Snowman.add( sphere5 ); sphere5.name = 'hand left';
+
+                // нос
+
+                var	material = new THREE.MeshLambertMaterial( {color: 0xf36223} );
+                var geometry = new THREE.CylinderGeometry( 1, 4, 20, 16 );
+                var nose = new THREE.Mesh( geometry, material);
+                nose.position.set(0, 101, 23); nose.rotation.x = Math.PI / 2;
+                nose.name = 'nose';
+                Snowman.add( nose );
+
+                // ведро
+
+                var	material = new THREE.MeshLambertMaterial({color: 0x6600ff}); 
+                var geometry = new THREE.CylinderGeometry( 12, 17, 30, 24 ); 
+                var bucket = new THREE.Mesh( geometry, material);	 		
+                bucket.position.set(0, 125, -6 );  bucket.rotation.x = -Math.PI/11;
+                Snowman.add( bucket ); bucket.name = 'bucket';
+
+                // глаза
+
+                var	material = new THREE.MeshLambertMaterial({color: 0x000000});
+                var geometry = new THREE.SphereGeometry( 3, 25, 5 );
+                var eye1 = new THREE.Mesh( geometry, material);
+                eye1.position.set( -8, 105, 13 ); eye1.name = 'eye1';
+                Snowman.add( eye1 );
+
+                var eye2 = new THREE.Mesh( geometry, material);	
+                eye2.position.set( 8, 105, 13 ); eye2.name = 'eye2';
+                Snowman.add( eye2 );
+
+                // рот
+
+                var	material = new THREE.MeshBasicMaterial({color: 0x560319});
+                var geometry = new THREE.CircleGeometry( 5, 5, 0, Math.PI );
+                var mouth = new THREE.Mesh( geometry, material);
+                mouth.rotation.z = Math.PI;
+                mouth.position.set( 0, 97, 13 );
+                Snowman.add( mouth ); 
+
+                Snowman.name = 'Snowman';
+                return Snowman;
+
+			}
+          
 
 		</script>
 

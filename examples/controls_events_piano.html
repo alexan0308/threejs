@@ -1,127 +1,120 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>three.js webgl - objects controls</title>
+		<title>three.js webgl - drag controls</title>
 		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link type="text/css" rel="stylesheet" href="main.css">
 		<style>
 			body {
-				margin: 0px;
-				color: #fff;
-				font-family:Monospace;
-				text-align: center;
-				font-size: 15px;
-				line-height: 30px;
-				overflow: hidden;
+				background-color: #f0f0f0;
+				color: #444;
 			}
-			#info {
-				position: absolute;
-				top: 0px; width: 100%;
-				padding: 15px;
-				z-index:100;
+			a {
+				color: #08f;
 			}
 		</style>
 	</head>
 	<body>
 		<div id="info">
-			<a href="http://threejs.org" target="_blank">three.js</a> - look console
+			<a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> webgl - event controls<br />
 		</div>
 
-		<script src="../build/three.min.js"></script>
+		<!-- Import maps polyfill -->
+		<!-- Remove this when import maps will be widely supported -->
+		<script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
 
-		<script src="js/libs/stats.min.js"></script>
+		<script type="importmap">
+			{
+				"imports": {
+					"three": "https://threejs.org/build/three.module.js"
+				}
+			}
+		</script>
 
-		<script src="js/controls/OrbitControls.js"></script>		
-		<script src="js/controls/EventsControls.js"></script>
+		<script type="module">
 
-		<script>
+			import * as THREE from 'three';
 
+			import { EventControls } from './js/controls/EventControls.js';
+			import { OrbitControls } from 'https://threejs.org/examples/jsm/controls/OrbitControls.js'
+          
+			let container;
+			let camera, scene, renderer;
+			var orbitcontrol, eventControl, group;
+			let enableSelection = false;
+            var radius = 10;
+            var previousPos = new THREE.Vector3( 0, 0, 0 );
 
-			var camera, scene, renderer, controls;
+			var dragObjects = [];
 			var audios = [];
 
 			init();
-			animate();
+            animate();
 
 			function init() {
 
-				for ( var i = 0; i < 8; i ++ ) {
-					var audio = document.createElement( "audio" );
-					document.body.appendChild( audio );
-					audio.src = 'snd/' + String( i ) + '.mp3';
-					audio.load();
-					audios.push( audio );
-				}
-
-				renderer = new THREE.WebGLRenderer( { antialias: true } ); 
-				renderer.setClearColor( 0x6495ED );
-				renderer.setSize( window.innerWidth, window.innerHeight );				
-				document.body.appendChild( renderer.domElement );
-
-				//
-
-				stats = new Stats();
-				stats.domElement.style.position = 'absolute';
-				stats.domElement.style.top = '0px';
-				stats.domElement.style.zIndex = 100;
-				document.body.appendChild( stats.domElement );
-
-				//
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
 
 				camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 2000 );				
 				camera.position.set( 50, 200, 300 );
 				camera.lookAt( new THREE.Vector3( 0, 0, 0 ) );
 
-				controls = new THREE.OrbitControls( camera, renderer.domElement );
-				controls.rotateSpeed = 1;
-				controls.noZoom = false;
-				controls.zoomSpeed = 1.2;
-				controls.staticMoving = true;
-				controls.minPolarAngle = Math.PI / 3;
-				controls.maxPolarAngle = Math.PI / 3;
-
 				scene = new THREE.Scene();
+				scene.background = new THREE.Color( 0xf0f0f0 );
 
-				var light = new THREE.DirectionalLight( 0xffffff, 1 );
-				light.position.set( 0, 500, 1000 );
+				scene.add( new THREE.AmbientLight( 0x505050 ) );
+
+				const light = new THREE.SpotLight( 0xffffff, 1.5 );
+				light.position.set( 300, 100, 1200 );
+				light.angle = Math.PI / 9;
+
+				light.castShadow = true;
+				light.shadow.camera.near = 500;
+				light.shadow.camera.far = 1000;
+				light.shadow.mapSize.width = 1024;
+				light.shadow.mapSize.height = 1024;
+
 				scene.add( light );
 
-				var light = new THREE.AmbientLight( 0x222222 );
-				scene.add( light );
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+              
+				//renderer.setSize( 1200, 600 );
+              
+				renderer.shadowMap.enabled = true;
+				renderer.shadowMap.type = THREE.PCFShadowMap;
+
+				container.appendChild( renderer.domElement );
+              
+				// CONTROLS   //управление событиями
+              
+				orbitcontrol = new OrbitControls( camera, renderer.domElement );
+				orbitcontrol.addEventListener( 'change', render );
+				orbitcontrol.rotateSpeed = 0.1; 
+				orbitcontrol.enableZoom = true;  
+				orbitcontrol.zoomSpeed = 0.2;  
+
+                orbitcontrol.minPolarAngle = Math.PI/3; // radians
+				orbitcontrol.maxPolarAngle = Math.PI/3; // radians
+              
 
 
-				// piano
+				// world
 
+
+ 				for ( var i = 0; i < 8; i ++ ) {
+					var audio = document.createElement( "audio" );
+					document.body.appendChild( audio );
+					audio.src = 'snd/' + String( i ) + '.mp3';
+					audio.load();
+					audios.push( audio );
+				}           
 
 				var autoMaterial = new THREE.MeshPhongMaterial( { color: 0x6a2089 } );
 				var selMaterial = new THREE.MeshPhongMaterial( { color: 0x00d9ff } );
-
-
-				EventsControls = new EventsControls( camera, renderer.domElement );
-
-				EventsControls.attachEvent( 'mouseOver', function () {
-
-					this.container.style.cursor = 'pointer';
-					this.mouseOvered.material = selMaterial;
-					console.log( 'the key at number ' + this.event.item + ' is select' );
-
-				});
-
-				EventsControls.attachEvent( 'mouseOut', function () {
-
-					this.container.style.cursor = 'auto';
-					this.mouseOvered.material = autoMaterial;
-
-				});
-
-				EventsControls.attachEvent( 'onclick', function () {
-
-					this.focused.position.y = -20;
-					audios[ this.event.item ].play();
-					setTimeout( 'scene.getObjectByName( "key' + String( this.event.item ) + '" ).position.y = 0', 100 );
-					console.log( 'the key at number ' + this.event.item + ' is pressed' );
-
-				});
-
 
 				var geometry = new THREE.BoxGeometry( 20, 20, 80 );
 
@@ -131,27 +124,62 @@
 					key.position.set( i * 40 - 140, 0, 0 );
 					key.name = 'key' + String( i );
 					scene.add( key );
-					EventsControls.attach( key );
+					dragObjects.push( key );
 
 				}
 
+				eventControl = new EventControls( [ ... dragObjects ], camera, renderer.domElement );
+
+				eventControl.attachEvent( 'mouseOver', function () {
+
+					container.style.cursor = 'pointer';
+					this.event.object.material = selMaterial;
+					console.log( 'the key at number ' + this.event.item + ' is select' );
+
+				});
+              
+				eventControl.attachEvent( 'mouseOut', function () {
+
+					container.style.cursor = 'auto';
+					this.event.object.material = autoMaterial;
+
+				});              
+              
+
+				eventControl.attachEvent( 'onclick', function () {
+					this.event.object.position.y = -20;
+					audios[ this.event.item ].play();
+                    setTimeout( () => dragObjects[ this.event.item ].position.y = 0, 100 );
+					console.log( 'the key at number ' + this.event.item + ' is pressed' );
+				});
+              
+				//
+
+				window.addEventListener( 'resize', onWindowResize );
+
 			}
 
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+				render();
+
+			}
 
 			function animate() {
 
-					requestAnimationFrame(animate);
-					render();
+				requestAnimationFrame( animate );
+				render();
 
 			}
 
-
 			function render() {
 
-					stats.update();
-					EventsControls.update(); // real-time update
-					controls.update();
-					renderer.render(scene, camera);
+				renderer.render( scene, camera );
 
 			}
 

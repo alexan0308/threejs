@@ -1,282 +1,184 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>three.js webgl - objects controls</title>
+		<title>three.js webgl - drag controls</title>
 		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link type="text/css" rel="stylesheet" href="main.css">
 		<style>
 			body {
-				margin: 0px;
-				color: #fff;
-				font-family:Monospace;
-				text-align: center;
-				font-size: 15px;
-				line-height: 30px;
-				overflow: hidden;
+				background-color: #f0f0f0;
+				color: #444;
 			}
-			#info {
-				position: absolute;
-				top: 0px; width: 100%;
-				padding: 15px;
-				z-index:100;
+			a {
+				color: #08f;
 			}
 		</style>
 	</head>
 	<body>
 		<div id="info">
-			<a href="http://threejs.org" target="_blank">three.js</a> - look console
+			<a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> webgl - event controls<br />
 		</div>
 
-		<script src="../build/three.min.js"></script>
-		<script src="js/loaders/DDSLoader.js"></script>
-		<script src="js/loaders/MTLLoader.js"></script>
-		<script src="js/loaders/OBJLoader.js"></script>	
-		<script src="js/loaders/ColladaLoader.js"></script>
+		<!-- Import maps polyfill -->
+		<!-- Remove this when import maps will be widely supported -->
+		<script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
 
+		<script type="importmap">
+			{
+				"imports": {
+					"three": "https://threejs.org/build/three.module.js"
+				}
+			}
+		</script>
 
-		<script src="js/libs/stats.min.js"></script>
+		<script type="module">
 
-		<script src="js/controls/OrbitControls.js"></script>		
-		<script src="js/controls/EventsControls.js"></script>
+			import * as THREE from 'three';
 
-		<script>
-
-
-			var camera, scene, renderer, controls; 
-			var model;
-
-			var particleCount = 100;
-			var particleSystem;
+			import { EventControls } from './js/controls/EventControls.js';
+			import { OrbitControls } from 'https://threejs.org/examples/jsm/controls/OrbitControls.js'
+			import { ColladaLoader } from 'https://threejs.org/examples/jsm/loaders/ColladaLoader.js';          
+			let container;
+			let camera, scene, renderer;
+			var orbitcontrol, eventControl, eventControl2;
+            var cameraPolarAngle = Math.PI/3;
+			var dae;
+			const dragObjects = [], redDragObjects = [];
 
 			init();
-			animate();
 
+ 			window.onload = function() { render(); }
+ 
 			function init() {
 
-				renderer = new THREE.WebGLRenderer( { antialias: true } ); 
-				renderer.setClearColor( 0x6495ED );
-				renderer.setSize( window.innerWidth, window.innerHeight );				
-				document.body.appendChild( renderer.domElement );
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
 
-				//
-
-				stats = new Stats();
-				stats.domElement.style.position = 'absolute';
-				stats.domElement.style.top = '0px';
-				stats.domElement.style.zIndex = 100;
-				document.body.appendChild( stats.domElement );
-
-				//
-
-				camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 2000 );				
-				camera.position.set( 100, 400, 600 );
+				camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 2000 );
+				camera.position.set( 0, 900 * Math.tan( Math.PI/2 - cameraPolarAngle ), 900 );
 				camera.lookAt( new THREE.Vector3( 0, 0, 0 ) );
 
-				controls = new THREE.OrbitControls( camera, renderer.domElement );
-				controls.rotateSpeed = 1;
-				controls.noZoom = false;
-				controls.zoomSpeed = 1.2;
-				controls.staticMoving = true;
-				controls.minPolarAngle = Math.PI / 3;
-				controls.maxPolarAngle = Math.PI / 3;
-
 				scene = new THREE.Scene();
+				scene.background = new THREE.Color( 0xf0f0f0 );
 
-				var light = new THREE.DirectionalLight( 0xffffff, 1 );
-				light.position.set( 0, 500, 1000 );
+				scene.add( new THREE.AmbientLight( 0x505050 ) );
+
+				const light = new THREE.SpotLight( 0xffffff, 1.5 );
+				light.position.set( 300, 100, 1400 );
+				light.angle = Math.PI / 9;
+
+				light.castShadow = true;
+				light.shadow.camera.near = 500;
+				light.shadow.camera.far = 1000;
+				light.shadow.mapSize.width = 1024;
+				light.shadow.mapSize.height = 1024;
+
 				scene.add( light );
 
-				var light = new THREE.AmbientLight( 0x222222 );
-				scene.add( light );
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+              
+				//renderer.setSize( 1200, 600 );
+              
+				renderer.shadowMap.enabled = true;
+				renderer.shadowMap.type = THREE.PCFShadowMap;
 
+				container.appendChild( renderer.domElement );
+              
+				// CONTROLS   //—É–ø—Ä–∞–≤–ª–µ–Ω–∏–µ —Å–æ–±—ã—Ç–∏—è–º–∏
+				orbitcontrol = new OrbitControls( camera, renderer.domElement );
+				orbitcontrol.addEventListener( 'change', render );
+				orbitcontrol.rotateSpeed = 0.1; 
+				orbitcontrol.enableZoom = true;  
+				orbitcontrol.zoomSpeed = 0.2;  
+
+				orbitcontrol.minDistance = 500;
+				orbitcontrol.maxDistance = 1300;
+                orbitcontrol.minPolarAngle = cameraPolarAngle; // radians
+				orbitcontrol.maxPolarAngle = cameraPolarAngle; // radians
+              
+				orbitcontrol.minAzimuthAngle = - Math.PI/12; // radians
+				orbitcontrol.maxAzimuthAngle = Math.PI/12; // radians
 
 				// world
 
-				var map = new THREE.TextureLoader().load( 'textures/checkerboard.jpg' );
-				map.wrapS = map.wrapT = THREE.RepeatWrapping;
-				map.repeat.set( 4, 4 );
-				map.anisotropy = 32; // Í‡˜ÂÒÚ‚Ó ÚÂÍÒÚÛ˚
-				map.offset.set( 0.5, 0 );
+				var textureLoader = new THREE.TextureLoader();
+				var texture = textureLoader.load( 'textures/checkerboard.jpg' );
+				texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+				texture.repeat.set( 4, 4 );	texture.offset.set( 0.5, 0 );
 
-				var Material = new THREE.MeshBasicMaterial( { map: map, side: THREE.DoubleSide } );
-				var Geometry = new THREE.PlaneBufferGeometry( 400, 400, 1, 1 );
+				var Material = new THREE.MeshBasicMaterial( { map: texture, side: THREE.DoubleSide } );
+				var Geometry = new THREE.PlaneGeometry( 400, 400, 1, 1 );
 
 				var checkerboard = new THREE.Mesh( Geometry, Material );
 				checkerboard.position.y = - 1;
 				checkerboard.rotation.x =  Math.PI / 2;
 				scene.add( checkerboard );
+              
 
+				const loadingManager = new THREE.LoadingManager( function () {
+						scene.add(dae); 
+						dragObjects.push( dae );
+                        eventControl = new EventControls( [ ... dragObjects ], camera, renderer.domElement );
+                        eventControl.setDraggable( render, true );              
+                        eventControl.setMap ( checkerboard );
+                        eventControl.setOrbitControl( orbitcontrol );
+                    	render();
+				} );
 
-				EventsControls1 = new EventsControls( camera, renderer.domElement );
-				EventsControls1.map = checkerboard;			
-				EventsControls1.offsetUse = true;
+				// collada
 
-				EventsControls1.attachEvent( 'onclick', function() {
+				const loader = new ColladaLoader( loadingManager );
+				loader.load( './models/elf/elf.dae', function ( collada ) {
 
-					console.log( 'this.focused.name: ' + this.focused.name );
-
-				});
-
-				EventsControls1.attachEvent( 'mouseOver', function () {
-
-					this.container.style.cursor = 'pointer';
-
-				});
-
-				EventsControls1.attachEvent( 'mouseOut', function () {
-
-					this.container.style.cursor = 'auto';
-
-				});
-
-				EventsControls1.attachEvent( 'dragAndDrop', function () {
-
-					this.container.style.cursor = 'move';
-					this.focused.position.y = this.previous.y;
-					//this.focused.position.x = 25 + 50 * Math.round( ( this.focused.position.x - 25 ) / 50 );
-					//this.focused.position.z = 25 + 50 * Math.round( ( this.focused.position.z - 25 ) / 50 );
-
-				});
-
-				EventsControls1.attachEvent( 'mouseUp', function () {
-
-					this.container.style.cursor = 'auto';
-
-				});
-
-				
-				var mtlLoader = new THREE.MTLLoader();
-				mtlLoader.setBaseUrl( 'models/bench/' );
-				mtlLoader.setPath( 'models/bench/' );				
-				mtlLoader.load( 'Bench3.mtl', function( materials ) {
-					materials.preload();
-					var objLoader = new THREE.OBJLoader();
-					objLoader.setMaterials( materials );
-					objLoader.setPath( 'models/bench/' );
-					objLoader.load( 'Bench3.obj', function ( Bench ) {
-						Bench.position.set( 125, 35, 175 );
-						Bench.scale.set( 1/30, 1/30, 1/30 );
-						scene.add( Bench );
-						Bench.name = 'Bench';
-						EventsControls1.attach( Bench );
-					} );
-				});
-				
-				var mtlLoader2 = new THREE.MTLLoader();
-				mtlLoader2.setBaseUrl( 'models/objmtl/' );
-				mtlLoader2.setPath( 'models/objmtl/' );				
-				mtlLoader2.load( 'model.mtl', function( materials ) {
-					materials.preload();
-					var objLoader2 = new THREE.OBJLoader();
-					objLoader2.setMaterials( materials );
-					objLoader2.setPath( 'models/objmtl/' );
-					objLoader2.load( 'model.obj', function ( GingerbreadMan ) {
-						GingerbreadMan.position.set( -125, 35, 175 );
-						GingerbreadMan.scale.set( 1/3, 1/3, 1/3 );
-						GingerbreadMan.name = 'GingerbreadMan';
-						scene.add( GingerbreadMan );
-						EventsControls1.attach( GingerbreadMan );
-					} );
-				});				
-					
-
-				var jsonLoader = new THREE.JSONLoader();
-				jsonLoader.load( "models/Tux.js", addModelToScene );
-								
-
-					
-	
-				EventsControls2 = new EventsControls( camera, renderer.domElement );
-				EventsControls2.map = checkerboard;	
-
-				EventsControls2.attachEvent( 'mouseOver', function () {
-
-					this.container.style.cursor = 'pointer';
-
-				});
-
-				EventsControls2.attachEvent( 'mouseOut', function () {
-
-					this.container.style.cursor = 'auto';
-
-				});
-
-				EventsControls2.attachEvent( 'dragAndDrop', function () {
-
-					this.container.style.cursor = 'move';
-					this.focused.position.y = this.previous.y;
-
-				});
-
-								
-					
-				var loader = new THREE.ColladaLoader();
-				EventsControls2.offsetUse = true;
-				
-					loader.options.convertUpAxis = true;
-					loader.load( 'models/monster/monster.dae', function ( collada ) {
-						var dae = collada.scene;
+						dae = collada.scene;
 						dae.position.set(0,0,0);
-						dae.scale.set(1/10,1/10,1/10);
+						dae.scale.set(25,25,25);
 						dae.updateMatrix();
 
-						scene.add(dae); 
-						EventsControls2.attach( dae );
-					}); 
 
-	
+				} );
+           
+              //
 
-				EventsControls3 = new EventsControls( camera, renderer.domElement );
-				EventsControls3.attach( checkerboard );
+				window.addEventListener( 'resize', onWindowResize );
 
-				EventsControls3.attachEvent( 'mouseOver', function () {
-
-					controls.enabled = false;
-
-				});
-
-				EventsControls3.attachEvent( 'mouseOut', function () {
-
-					controls.enabled = true;
-
-				});
-	
 			}
 
-			function addModelToScene( geometry, materials ) {
+			function onWindowResize() {
 
-				var material = new THREE.MeshFaceMaterial( materials );
-				model = new THREE.Mesh( geometry, material );
-				model.scale.set( 10, 10, 10 ); model.name = 'Tux';
-				model.rotation.x = -Math.PI/2; 
-				model.position.set( -75, 45, 175  );
-				scene.add( model ); EventsControls1.attach( model );
-	
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+				render();
+
 			}
-
 
 			function animate() {
 
-					requestAnimationFrame(animate);
-					render();
+				requestAnimationFrame( animate );
+				render();
 
 			}
-
 
 			function render() {
 
-					stats.update();
-
-					EventsControls1.update();
-					EventsControls3.update();
-
-					controls.update();
-					renderer.render(scene, camera);
+				renderer.render( scene, camera );
 
 			}
-					
+          
+
+          	function getRandomInt(min, max) {
+                min = Math.ceil(min);
+                max = Math.floor(max);
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+
 		</script>
 
 	</body>
 </html>
-
-
