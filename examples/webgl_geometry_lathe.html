@@ -108,8 +108,8 @@
 				points.push( new THREE.Vector3( 90, 0, 0 ) );
 				points.push( new THREE.Vector3( 90, 0, 5 ) );			
 
-				v0 = new THREE.Vector2( 90, 5 ); v1 = new THREE.Vector2( 154 , 17 );
-				v2 = new THREE.Vector2( 132, 59 ); v3 = new THREE.Vector2( 219, 66 );
+				let v0 = new THREE.Vector2( 90, 5 ); let v1 = new THREE.Vector2( 154 , 17 );
+				let v2 = new THREE.Vector2( 132, 59 ); let v3 = new THREE.Vector2( 219, 66 );
 
 				var curve = new THREE.CubicBezierCurve( v0, v1, v2, v3 );
 
@@ -157,7 +157,7 @@
 
 				// apple
 
-				apple = new THREE.Object3D;
+				let apple = new THREE.Object3D;
 
 				v0 = new THREE.Vector2( 0, 30 ); v1 = new THREE.Vector2( 108, -40 );
 				v2 = new THREE.Vector2( 61.5, 180 ); v3 = new THREE.Vector2( 0, 120 );
@@ -179,7 +179,7 @@
 				apple_.rotation.x = Math.PI / 2;
 				apple.add( apple_ );
 
-				chain = new THREE.Curve.create( function(){},
+				var chain = new THREE.Curve.create( function(){},
 					function(t) {
 						t = 3 * t;
 						var a = 10, b = 2;
@@ -190,7 +190,7 @@
 					}
 				);
 
-				mychain = new chain;
+				let mychain = new chain;
 				var tubegeo = new THREE.TubeGeometry( mychain, 128, 4, 12, closed = false );
 
 				var Texture = new THREE.ImageUtils.loadTexture( 'textures/terrain/backgrounddetailed6.jpg' );
@@ -205,7 +205,7 @@
 
 				// pear
 
-				pear = new THREE.Object3D;
+				let pear = new THREE.Object3D;
 
 				var points = [];
 				v0 = new THREE.Vector2( 0, -104 ); v1 = new THREE.Vector2( 100, -104 );
