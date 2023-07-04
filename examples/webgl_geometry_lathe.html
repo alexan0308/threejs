@@ -53,8 +53,8 @@
 				container = document.createElement( 'div' );
 				document.body.appendChild( container );
 				
-				camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 3000 );
-				camera.position.set( 0, 1900 * Math.tan( Math.PI/2 - cameraPolarAngle ), 1900 );
+				camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 5000 );
+				camera.position.set( 0, 1900 * Math.tan( Math.PI/2 - cameraPolarAngle ), 0 );
 				camera.lookAt( new THREE.Vector3( 0, 0, 0 ) );
 
 				scene = new THREE.Scene();
@@ -84,13 +84,13 @@
 				orbitcontrol.enableZoom = true;  
 				orbitcontrol.zoomSpeed = 0.2;  
 
-				orbitcontrol.minDistance = 500;
-				orbitcontrol.maxDistance = 1300;
-               			orbitcontrol.minPolarAngle = cameraPolarAngle; // radians
-				orbitcontrol.maxPolarAngle = cameraPolarAngle; // radians
+				//orbitcontrol.minDistance = 500;
+				//orbitcontrol.maxDistance = 1300;
+               	//orbitcontrol.minPolarAngle = cameraPolarAngle; // radians
+				//orbitcontrol.maxPolarAngle = cameraPolarAngle; // radians
               
-				orbitcontrol.minAzimuthAngle = - Math.PI/12; // radians
-				orbitcontrol.maxAzimuthAngle = Math.PI/12; // radians
+				//orbitcontrol.minAzimuthAngle = - Math.PI/12; // radians
+				//orbitcontrol.maxAzimuthAngle = Math.PI/12; // radians
 
 				// world
 
@@ -180,7 +180,7 @@
 
 				apple_.rotation.x = Math.PI / 2;
 				apple.add( apple_ );
-
+/*
 				var chain = new THREE.Curve( function(){},
 					function(t) {
 						t = 3 * t;
@@ -192,15 +192,14 @@
 					}
 				);
 
-				let mychain = new chain;
-				var tubegeo = new THREE.TubeGeometry( mychain, 128, 4, 12, closed = false );
+				var tubegeo = new THREE.TubeGeometry( chain, 128, 4, 12, closed = false );
 
 				var Texture =  textureLoader.load( 'textures/terrain/backgrounddetailed6.jpg' );
 				var material2 = new THREE.MeshPhongMaterial( { map: Texture , side: THREE.DoubleSide } );
 
 				var pod = new THREE.Mesh( tubegeo, material2 );
 				apple.add( pod );
-
+*/
 				apple.position.set( 0, 130, 0 );
 				scene.add( apple );
 
@@ -220,9 +219,9 @@
 				}
 
 
-				v4 = new THREE.Vector2( 32, 121 );
-				v5 = new THREE.Vector2( 60, 182 );
-				v6 = new THREE.Vector2(  0, 184 );
+				let v4 = new THREE.Vector2( 32, 121 );
+				let v5 = new THREE.Vector2( 60, 182 );
+				let v6 = new THREE.Vector2(  0, 184 );
 
 				var curve = new THREE.CubicBezierCurve( v3, v4, v5, v6 );
 	
@@ -238,10 +237,11 @@
 
 				pear_.rotation.x = -Math.PI / 2;
 				pear.add( pear_ );
+			/*
 				var pod = pod.clone();
 				pod.position.set( 0, 121, 0 );
 				pear.add( pod );
-
+*/
 				pear.position.set( 80, -geometry.boundingBox.min.z + 30, -80 );		
 				scene.add( pear );
 
@@ -328,7 +328,7 @@
 
 				// vase
 
-				vase = new THREE.Object3D;
+				let vase = new THREE.Object3D;
 
 				var Texture = textureLoader.load( 'textures/terrain/backgrounddetailed6.jpg' );
 
@@ -359,7 +359,7 @@
 				}
 
 
-				tank = new THREE.Mesh( new THREE.LatheGeometry( points, 28 ), material );
+				let tank = new THREE.Mesh( new THREE.LatheGeometry( points, 28 ), material );
 				tank.rotation.x = -Math.PI / 2;
 				vase.add( tank );
 
