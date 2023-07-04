@@ -34,27 +34,32 @@
 
 	<body>
 		<div id="container"></div>
+
 		<div id="info">
-			<a href="http://threejs.org" target="_blank">three.js</a> - geometry Lathe
+			<a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> - geometry Lathe
 		</div>
 
-		<script src="../build/three.min.js"></script>
-		
-		<script src="js/Mirror.js"></script>
-		<script src="js/controls/OrbitControls.js"></script>
+		<!-- Import maps polyfill -->
+		<!-- Remove this when import maps will be widely supported -->
+		<script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
 
-		<script src="js/Detector.js"></script>
-		<script src="js/libs/stats.min.js"></script>
-		
-		<script>
+		<script type="importmap">
+			{
+				"imports": {
+					"three": "https://threejs.org/build/three.module.js"
+				}
+			}
+		</script>
 
-			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+		<script type="module">
 
-			var container, stats;
+			import * as THREE from 'three';
+			import { OrbitControls } from 'https://threejs.org/examples/jsm/controls/OrbitControls.js';
 
+			let container;
 			var camera, controls, scene, renderer;
 			var light1;
-			var CircleMirror;
+			//var CircleMirror;
 			
 			init();
 			animate();
@@ -449,7 +454,7 @@
 				table.rotation.x = -Math.PI/2;
 
 				scene.add( table );
-
+/*
 				CircleMirror = new THREE.Mirror( renderer, camera, { clipBias: 0.003, textureWidth: 512, textureHeight: 512, color: 0x202030} );
 
 				var geometry = new THREE.CircleGeometry( Radius, 56 );
@@ -459,7 +464,7 @@
 				mirrorMesh.rotation.x = -Math.PI / 2;
 				mirrorMesh.position.y = -1;
 				scene.add( mirrorMesh );
-
+*/
 
 
 				// barrel
@@ -695,7 +700,7 @@
 
 					stats.update();
 					controls.update();
-					CircleMirror.render();
+					//CircleMirror.render();
 					renderer.render(scene, camera);
 
 			}
@@ -706,7 +711,7 @@
 
 				camera.position.set(X,Y,Z);
 
-				controls = new THREE.OrbitControls( camera, container );
+				controls = new OrbitControls( camera, container );
 
 				controls.rotateSpeed = 1;
 				controls.noZoom = false;
