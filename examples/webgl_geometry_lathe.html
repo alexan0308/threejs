@@ -364,7 +364,7 @@
 				vase.add( tank );
 
 
-				var Texture = new THREE.ImageUtils.loadTexture( 'textures/terrain/backgrounddetailed6.jpg' );
+				var Texture = textureLoader.load( 'textures/terrain/backgrounddetailed6.jpg' );
 				Texture.repeat.set( 1 / 4, 1 / 4 );
 				var material = new THREE.MeshPhongMaterial( { map: Texture , side: THREE.DoubleSide } );
 
