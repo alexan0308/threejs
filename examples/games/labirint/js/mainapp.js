@@ -330,7 +330,7 @@ function dinamo() {
         Mikki_Mouse.position.set(Mous.position.x, Mous.position.y, Mous.position.z);
         camera.position.set(Mous_position_x, Mous_position_y - 100, Mous_position_z);
         scene.remove(pravila);
-        DHTMLSound(soundpath + "labirint.mp3", "span_sound_golos_za_kadrom", "");
+        //DHTMLSound(soundpath + "labirint.mp3", "span_sound_golos_za_kadrom", "");
     }
 
 
