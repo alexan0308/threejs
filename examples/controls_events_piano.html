@@ -145,10 +145,10 @@
 				});              
               
 
-				eventControl.attachEvent( 'onclick', function () {
+				eventControl.attachEvent( 'click', function () {
 					this.event.object.position.y = -20;
 					audios[ this.event.item ].play();
-                    setTimeout( () => dragObjects[ this.event.item ].position.y = 0, 100 );
+                    			setTimeout( () => dragObjects[ this.event.item ].position.y = 0, 100 );
 					console.log( 'the key at number ' + this.event.item + ' is pressed' );
 				});
               
