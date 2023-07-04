@@ -106,35 +106,37 @@
 				"webgl_geometry_ArrowHelper",
 				"webgl_geometry_PrismGeometry",
 			],
-			"modifiers": [
-				"webgl_modifier_dent",
-				"webgl_modifier_bend",
-				"webgl_modifier_skew",
-				"webgl_simple_modifiers",
-			],
-			"brush": [
-				"webgl_brush",
-				"webgl_brush_game",
-			],
 			"loaders": [
 				"loader_molecule_xyz",
-			],
-			"terrain": [
-				"webgl_geometry_terrain_from_map",
 			],
 			"misc EventsControls": [
 				"controls_events_draggablecubes",
 				"controls_events_example",
 				"controls_events_piano",
-				"controls_events_collision",				
 				"controls_events_loaders",
-				"controls_events_Tower_of_Hanoi",
 				"webgl_interactive_cubes_ortho",
-				"webgl_interactive_lines",
-				"webgl_interactive_shape",
+				"webgl_interactive_lines"
 			],		
 			"games": [
 				"games/labirint/index",
+			],
+			"old does not work EventsControls": [
+				"controls_events_collision",
+				"controls_events_Tower_of_Hanoi",
+				"webgl_interactive_shape",
+			],
+			"old does not work modifiers": [
+				"webgl_modifier_dent",
+				"webgl_modifier_bend",
+				"webgl_modifier_skew",
+				"webgl_simple_modifiers",
+			],
+			"old does not work brush": [
+				"webgl_brush",
+				"webgl_brush_game",
+			],
+			"old does not work terrain": [
+				"webgl_geometry_terrain_from_map",
 			],
 		};
 
@@ -165,7 +167,8 @@
 			var array = location.href.split( '/' );
 			array.pop();
 
-			window.open( 'view-source:' + array.join( '/' ) + '/' + selected + '.html' );
+			window.open( 'https://github.com/alexan0308/threejs/blob/gh-pages/examples/' + selected + '.html' );
+
 
 		}, false );
 		button.style.display = 'none';
