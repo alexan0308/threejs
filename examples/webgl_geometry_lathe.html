@@ -65,9 +65,10 @@
 			animate();
 
 			function init() {
-
-				// camera		
-				AddCamera(0, 400, 2300); 		
+	
+				camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 3000 );
+				camera.position.set( 0, 1900 * Math.tan( Math.PI/2 - cameraPolarAngle ), 1900 );
+				camera.lookAt( new THREE.Vector3( 0, 0, 0 ) );
 
 				scene = new THREE.Scene();
 
@@ -96,7 +97,23 @@
 				stats.domElement.style.zIndex = 100;
 				container.appendChild( stats.domElement );
 
-				//
+				// CONTROLS   //управление событиями
+				orbitcontrol = new OrbitControls( camera, renderer.domElement );
+				orbitcontrol.addEventListener( 'change', render );
+				orbitcontrol.rotateSpeed = 0.1; 
+				orbitcontrol.enableZoom = true;  
+				orbitcontrol.zoomSpeed = 0.2;  
+
+				orbitcontrol.minDistance = 500;
+				orbitcontrol.maxDistance = 1300;
+               			orbitcontrol.minPolarAngle = cameraPolarAngle; // radians
+				orbitcontrol.maxPolarAngle = cameraPolarAngle; // radians
+              
+				orbitcontrol.minAzimuthAngle = - Math.PI/12; // radians
+				orbitcontrol.maxAzimuthAngle = Math.PI/12; // radians
+
+				// world
+
 
 				window.addEventListener( 'resize', onWindowResize, false );
 	
@@ -702,21 +719,6 @@
 					controls.update();
 					//CircleMirror.render();
 					renderer.render(scene, camera);
-
-			}
-
-			function AddCamera( X, Y, Z ) {
-
-				camera = new THREE.PerspectiveCamera( 24, window.innerWidth / window.innerHeight, 1, 10000 );
-
-				camera.position.set(X,Y,Z);
-
-				controls = new OrbitControls( camera, container );
-
-				controls.rotateSpeed = 1;
-				controls.noZoom = false;
-				controls.zoomSpeed = 1.2;
-				controls.staticMoving = true;
 
 			}
 
