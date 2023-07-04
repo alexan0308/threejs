@@ -171,7 +171,9 @@
 
 				var geometry = new THREE.LatheGeometry( points, 28 );
 
-				var Texture = new THREE.ImageUtils.loadTexture( 'textures/lathe/pear.jpg' );
+				var textureLoader = new THREE.TextureLoader();
+
+				var Texture = textureLoader.load( 'textures/lathe/pear.jpg' );
 				var material = new THREE.MeshPhongMaterial( { map: Texture } );
 
 				var apple_ = new THREE.Mesh( geometry, material );
@@ -193,7 +195,7 @@
 				let mychain = new chain;
 				var tubegeo = new THREE.TubeGeometry( mychain, 128, 4, 12, closed = false );
 
-				var Texture = new THREE.ImageUtils.loadTexture( 'textures/terrain/backgrounddetailed6.jpg' );
+				var Texture =  textureLoader.load( 'textures/terrain/backgrounddetailed6.jpg' );
 				var material2 = new THREE.MeshPhongMaterial( { map: Texture , side: THREE.DoubleSide } );
 
 				var pod = new THREE.Mesh( tubegeo, material2 );
@@ -328,7 +330,7 @@
 
 				vase = new THREE.Object3D;
 
-				var Texture = new THREE.ImageUtils.loadTexture( 'textures/terrain/backgrounddetailed6.jpg' );
+				var Texture = textureLoader.load( 'textures/terrain/backgrounddetailed6.jpg' );
 
 				var material = new THREE.MeshPhongMaterial( { map: Texture, side: THREE.DoubleSide } );
 				Texture.wrapS = Texture.wrapT = THREE.RepeatWrapping;
@@ -350,7 +352,7 @@
 				v5 = new THREE.Vector2( 86, 270 );
 				v6 = new THREE.Vector2( 84, 280 );
 
-					var BezierCurve = new THREE.CubicBezierCurve3( v3, v4, v5, v6 );
+				var BezierCurve = new THREE.CubicBezierCurve3( v3, v4, v5, v6 );
 
 				for ( var i = 0; i <= 1; i = i + 0.1 ) {
 					points.push( new THREE.Vector3( BezierCurve.getPoint( i ).x / 1.5,  0, BezierCurve.getPoint( i ).y / 1.5 ) ); 
@@ -695,8 +697,6 @@
 
 			function render() {
 
-					stats.update();
-					controls.update();
 					//CircleMirror.render();
 					renderer.render(scene, camera);
 
