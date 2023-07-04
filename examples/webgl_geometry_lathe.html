@@ -4,37 +4,18 @@
 		<title>three.js webgl - geometry LatheGeometry </title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-		<meta name="author" content="Vildanov Almaz">	
-		<style>
+		<link type="text/css" rel="stylesheet" href="main.css">
 			body {
-				color: #000;
-				font-family:Monospace;
-				font-size:13px;
-				text-align:center;
-				font-weight: bold;
-
-				background-color: #fff;
-				margin: 0px;
-				overflow: hidden;
+				background-color: #f0f0f0;
+				color: #444;
 			}
-
-			#info {
-				color:#000;
-				position: absolute;
-				top: 0px; width: 100%;
-				padding: 5px;
-
-			}
-
 			a {
-				color: red;
+				color: #08f;
 			}
 		</style>
 	</head>
 
 	<body>
-		<div id="container"></div>
-
 		<div id="info">
 			<a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> - geometry Lathe
 		</div>
@@ -67,6 +48,9 @@
 
 			function init() {
 	
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+				
 				camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 3000 );
 				camera.position.set( 0, 1900 * Math.tan( Math.PI/2 - cameraPolarAngle ), 1900 );
 				camera.lookAt( new THREE.Vector3( 0, 0, 0 ) );
@@ -86,17 +70,10 @@
 				// renderer
 
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
-				renderer.setClearColor( 0x203668 );
+				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
 
-				container = document.getElementById( 'container' );
 				container.appendChild( renderer.domElement );
-
-				stats = new Stats();
-				stats.domElement.style.position = 'absolute';
-				stats.domElement.style.top = '0px';
-				stats.domElement.style.zIndex = 100;
-				container.appendChild( stats.domElement );
 
 				// CONTROLS   //управление событиями
 				orbitcontrol = new OrbitControls( camera, renderer.domElement );
