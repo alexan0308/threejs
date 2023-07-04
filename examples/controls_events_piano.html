@@ -43,8 +43,8 @@
 			let camera, scene, renderer;
 			var orbitcontrol, eventControl, group;
 			let enableSelection = false;
-            var radius = 10;
-            var previousPos = new THREE.Vector3( 0, 0, 0 );
+            		var radius = 10;
+            		var previousPos = new THREE.Vector3( 0, 0, 0 );
 
 			var dragObjects = [];
 			var audios = [];
@@ -58,7 +58,7 @@
 				document.body.appendChild( container );
 
 				camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 2000 );				
-				camera.position.set( 50, 200, 300 );
+				camera.position.set( 75, 300, 450 );
 				camera.lookAt( new THREE.Vector3( 0, 0, 0 ) );
 
 				scene = new THREE.Scene();
@@ -97,9 +97,8 @@
 				orbitcontrol.enableZoom = true;  
 				orbitcontrol.zoomSpeed = 0.2;  
 
-                orbitcontrol.minPolarAngle = Math.PI/3; // radians
+                		orbitcontrol.minPolarAngle = Math.PI/3; // radians
 				orbitcontrol.maxPolarAngle = Math.PI/3; // radians
-              
 
 
 				// world
