@@ -90,7 +90,7 @@ class EventControls extends EventDispatcher {
               case 'mouseOut': 			this.mouseOut = handler; 		scope._mouseOutFlag = true;		break;
               case 'dragAndDrop': 	    scope.dragAndDrop = handler; 	scope._dragAndDropFlag = true;	scope.enabled = true; break;
               //case 'mouseUp': 		this.mouseUp = handler; 		_mouseUpFlag = true;		break;
-              case 'onclick': 			scope.onclick = handler; 		scope._onclickFlag = true;		break;
+              case 'click': 			scope.onclick = handler; 		scope._onclickFlag = true;		break;
               //case 'mouseMove': 		this.mouseMove = handler; 		_mouseMoveFlag = true;		break;		
               break;
           }
