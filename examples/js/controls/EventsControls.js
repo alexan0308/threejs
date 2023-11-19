@@ -378,7 +378,7 @@ EventsControls = function ( camera, domElement ) {
 
 		if ( _this.enabled ) { 
 			if ( _this.focused ) {
-
+				scope.event.object = _this.focused;
 				_this.mouseUp();
                 _DisplaceFocused = null;
 				_this.focused = null;
