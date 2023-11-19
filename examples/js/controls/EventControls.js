@@ -1,3 +1,9 @@
+ /** This EventControls will allow to facilitate development speed for simple manipulations by means of a mouse
+ * - point and click, drag and drop.
+ * @author Vildanov Almaz / alvild@gmail.com
+ *  version 11.19.2023.
+ */
+
 import {
 	EventDispatcher,
 	Matrix4,
@@ -45,6 +51,7 @@ class EventControls extends EventDispatcher {
         this.map = null;
 		this.previous = new Vector3(); // предыдущие координаты выделенного объекта
 		this.offset = new Vector3(0,0,0);
+		this._DisplaceIntersectsMap = [];	
       
 		this._mouseOverFlag = false;
 		this._mouseOutFlag = false;	
@@ -149,7 +156,7 @@ class EventControls extends EventDispatcher {
           
                 // <!-- enabled orbitcontrols
                   if ( scope.orbitControl ) {
-					  if ( _raycaster.intersectObject( scope.map, false ).length > 0 ) {
+					  if ( _raycaster.intersectObject( scope.map ).length > 0 ) {
 						scope.orbitControl.enabled = false; 
 						scope.orbitControl.saveState();
 					  }
@@ -163,19 +170,31 @@ class EventControls extends EventDispatcher {
                 // enabled orbitcontrols -->
           
 			if ( _selected ) {
-
+/*
 				if ( _raycaster.ray.intersectPlane( scope.plane, _intersection ) ) {
-                  if (!scope.map) { 
+                  if (!scope.map) { console.log( "!scope.map" );
 					_selected.position.copy( _intersection.sub( _offset ).applyMatrix4( _inverseMatrix ) ); //.sub( scope.offset ) ); //_selected.position.y = scope.previous.y;
-                    scope.dragAndDrop();
+                    scope.dragAndDrop(); 
                   } else if 
-                    ( _raycaster.intersectObject( scope.map, false ).length > 0 ) {
+                    ( _raycaster.intersectObject( scope.map, false ).length > 0 ) { console.log( "scope.map" );
                       _selected.position.copy( _intersection.sub( _offset ).applyMatrix4( _inverseMatrix ) ); //.sub( scope.offset ) ); //_selected.position.y = scope.previous.y;
                       scope.dragAndDrop(); 
                     }
                   //_offset.x =  _offset.x * 0.9; _offset.z =  _offset.z * 0.9;
                   _domElement.style.cursor = 'move';
 				}
+*/				
+				scope._DisplaceIntersectsMap = _raycaster.intersectObject( scope.map );
+				if ( scope._DisplaceIntersectsMap.length > 0 ) {
+				
+				   // console.log( _offset );
+                    _selected.position.copy( scope._DisplaceIntersectsMap[ 0 ].point.sub( _offset ).applyMatrix4( _inverseMatrix ) ); 
+                   // _selected.position.copy( scope._DisplaceIntersectsMap[ 0 ].point.applyMatrix4( _inverseMatrix ) ); 					
+					scope.dragAndDrop(); 
+					_domElement.style.cursor = 'move';
+				}				
+				
+				
 
 				scope.dispatchEvent( { type: 'drag', object: _selected } );
                 //_move( _selected );
@@ -268,12 +287,22 @@ class EventControls extends EventDispatcher {
 				//scope.offset.y = 0;
               
 				//scope.plane.setFromNormalAndCoplanarPoint( _camera.getWorldDirection( scope.plane.normal ), _worldPosition.setFromMatrixPosition( _selected.matrixWorld ) );
-
+/*
 				if ( _raycaster.ray.intersectPlane( scope.plane, _intersection ) ) {
 					_inverseMatrix.copy( _selected.parent.matrixWorld ).invert();
 					_offset.copy( _intersection ).sub( _worldPosition.setFromMatrixPosition( _selected.matrixWorld ) );
-
 				}
+	*/			
+				scope._DisplaceIntersectsMap = _raycaster.intersectObject( scope.map );
+				if ( scope._DisplaceIntersectsMap.length > 0 ) {
+				
+				   // console.log( _offset );
+                    _offset.copy( scope._DisplaceIntersectsMap[ 0 ].point.applyMatrix4( _inverseMatrix ) ).sub( _worldPosition.setFromMatrixPosition( _selected.matrixWorld ) ); 
+                   // _selected.position.copy( scope._DisplaceIntersectsMap[ 0 ].point.applyMatrix4( _inverseMatrix ) ); 					
+					//scope.dragAndDrop(); 
+					//_domElement.style.cursor = 'move';
+				}				
+								
 
               if ( scope.draggable ) {
 				_domElement.style.cursor = 'move';
@@ -297,11 +326,10 @@ class EventControls extends EventDispatcher {
 
 			if ( _selected ) {
 
-				scope.dispatchEvent( { type: 'dragend', object: _selected } );
-
-				_selected = null;
-                scope.event.object = null; scope.event.item = null;
 				scope.mouseUp();
+				scope.dispatchEvent( { type: 'dragend', object: _selected } );
+				_selected = null; 
+                scope.event.object = null; scope.event.item = null;
 			}
 
 			_domElement.style.cursor = _hovered ? 'pointer' : 'auto';
