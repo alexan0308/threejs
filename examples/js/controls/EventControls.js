@@ -87,9 +87,9 @@ class EventControls extends EventDispatcher {
 
           switch ( event ) {
               case 'mouseOver': 		this.mouseOver = handler; 		scope._mouseOverFlag = true;	break;
-              case 'mouseOut': 			this.mouseOut = handler; 		scope._mouseOutFlag = true;		break;
+              case 'mouseOut': 			this.mouseOut = handler; 		scope._mouseOutFlag = true;	break;
               case 'dragAndDrop': 	    scope.dragAndDrop = handler; 	scope._dragAndDropFlag = true;	scope.enabled = true; break;
-              //case 'mouseUp': 		this.mouseUp = handler; 		_mouseUpFlag = true;		break;
+              case 'mouseUp': 		scope.mouseUp = handler; 		scope._mouseUpFlag = true;		break;
               case 'click': 			scope.onclick = handler; 		scope._onclickFlag = true;		break;
               //case 'mouseMove': 		this.mouseMove = handler; 		_mouseMoveFlag = true;		break;		
               break;
@@ -301,7 +301,7 @@ class EventControls extends EventDispatcher {
 
 				_selected = null;
                 scope.event.object = null; scope.event.item = null;
-
+				scope.mouseUp();
 			}
 
 			_domElement.style.cursor = _hovered ? 'pointer' : 'auto';
