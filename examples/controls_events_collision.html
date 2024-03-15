@@ -55,7 +55,7 @@
 				container = document.createElement( 'div' );
 				document.body.appendChild( container );
 
-				camera = new THREE.PerspectiveCamera( 25, window.innerWidth / window.innerHeight, 1, 2000 );
+				camera = new THREE.PerspectiveCamera( 25, window.innerWidth / window.innerHeight, 1, 2500 );
 				camera.position.set( 0, 800 * Math.tan( Math.PI/2 - cameraPolarAngle ), 800 );
 				camera.lookAt( new THREE.Vector3( 0, 0, 0 ) );
 
@@ -88,7 +88,7 @@
 				orbitcontrol.zoomSpeed = 0.2;  
 
 				orbitcontrol.minDistance = 500;
-				orbitcontrol.maxDistance = 1300;
+				orbitcontrol.maxDistance = 2300;
                 orbitcontrol.minPolarAngle = cameraPolarAngle; // radians
 				orbitcontrol.maxPolarAngle = cameraPolarAngle; // radians
               
