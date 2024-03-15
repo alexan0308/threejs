@@ -1,223 +1,193 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>three.js webgl - Events Controls</title>
+		<title>three.js webgl - drag controls</title>
 		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link type="text/css" rel="stylesheet" href="https://alexan0308.github.io/threejs/examples/main.css">
 		<style>
 			body {
-				margin: 0px;
-				color: #fff;
-				font-family:Monospace;
-				text-align: center;
-				font-size: 15px;
-				line-height: 30px;
-				overflow: hidden;
+				background-color: #f0f0f0;
+				color: #444;
 			}
-			#info {
-				position: absolute;
-				top: 0px; width: 100%;
-				padding: 15px;
-				z-index:100;
+			a {
+				color: #08f;
 			}
 		</style>
 	</head>
 	<body>
 		<div id="info">
-			<a href="http://threejs.org" target="_blank">three.js</a> EventsControls (look console)
+			<a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> not collisions<br />
 		</div>
 
-		<script src="../build/three.min.js"></script>
+		<!-- Import maps polyfill -->
+		<!-- Remove this when import maps will be widely supported -->
+		<script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
 
-		<script src="js/libs/stats.min.js"></script>
+		<script type="importmap">
+			{
+				"imports": {
+					"three": "https://threejs.org/build/three.module.js"
+				}
+			}
+		</script>
 
-		<script src="js/controls/OrbitControls.js"></script>		
-		<script src="js/controls/EventsControls.js"></script>
+		<script type="module">
 
-		<script>
+			import * as THREE from 'three';
 
+			import { EventControls } from './EventControls.js';		
+			import { OrbitControls } from 'https://threejs.org/examples/jsm/controls/OrbitControls.js'
+          
+			let container;
+			let camera, scene, renderer;
+			var orbitcontrol, eventControl;
+            var radius = 10, group; var cameraPolarAngle = Math.PI/3;
 
-			var camera, scene, renderer, controls;
+			const dragObjects = []; const clsObjects = []; 
 
 			init();
-			animate();
 
+ 			window.onload = function() { render(); }
+ 
 			function init() {
 
-				renderer = new THREE.WebGLRenderer( { antialias: true } ); 
-				renderer.setClearColor( 0x6495ED );
-				renderer.setSize( window.innerWidth, window.innerHeight );				
-				document.body.appendChild( renderer.domElement );
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
 
-				//
-
-				stats = new Stats();
-				stats.domElement.style.position = 'absolute';
-				stats.domElement.style.top = '0px';
-				stats.domElement.style.zIndex = 100;
-				document.body.appendChild( stats.domElement );
-
-				//
-
-				camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 2000 );
-				camera.position.set( 100, 400, 600 );
+				camera = new THREE.PerspectiveCamera( 25, window.innerWidth / window.innerHeight, 1, 2000 );
+				camera.position.set( 0, 800 * Math.tan( Math.PI/2 - cameraPolarAngle ), 800 );
 				camera.lookAt( new THREE.Vector3( 0, 0, 0 ) );
 
-				controls = new THREE.OrbitControls( camera, renderer.domElement );
-				controls.rotateSpeed = 1 / 2;
-				controls.noZoom = false;
-				controls.zoomSpeed = 1.2;
-				controls.staticMoving = true;
-				controls.minPolarAngle = Math.PI / 3;
-				controls.maxPolarAngle = Math.PI / 3;
-
 				scene = new THREE.Scene();
+				scene.background = new THREE.Color( 0xf0f0f0 );
 
-				var light = new THREE.DirectionalLight( 0xffffff, 1 );
-				light.position.set( 0, 500, 1000 );
+				scene.add( new THREE.AmbientLight( 0x505050 ) );
+
+				const light = new THREE.DirectionalLight( 0xFFFFFF, 1.0 );
+				light.position.set( 1, 1, 1 );
+
 				scene.add( light );
 
-				var light = new THREE.AmbientLight( 0x222222 );
-				scene.add( light );
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+              
+				//renderer.setSize( 1200, 600 );
+              
+				renderer.shadowMap.enabled = true;
+				renderer.shadowMap.type = THREE.PCFShadowMap;
 
+				container.appendChild( renderer.domElement );
+              
+				// CONTROLS   //управление событиями
+				orbitcontrol = new OrbitControls( camera, renderer.domElement );
+				orbitcontrol.addEventListener( 'change', render );
+				orbitcontrol.rotateSpeed = 0.1; 
+				orbitcontrol.enableZoom = true;  
+				orbitcontrol.zoomSpeed = 0.2;  
+
+				orbitcontrol.minDistance = 500;
+				orbitcontrol.maxDistance = 1300;
+                orbitcontrol.minPolarAngle = cameraPolarAngle; // radians
+				orbitcontrol.maxPolarAngle = cameraPolarAngle; // radians
+              
+				orbitcontrol.minAzimuthAngle = - Math.PI/10; // radians
+				orbitcontrol.maxAzimuthAngle = Math.PI/10; // radians
 
 				// world
 
-				var Texture = new THREE.ImageUtils.loadTexture( 'textures/checkerboard.jpg' );
-				Texture.wrapS = Texture.wrapT = THREE.RepeatWrapping;
-				Texture.repeat.set( 4, 4 );	Texture.offset.set( 0.5, 0 );
+				var textureLoader = new THREE.TextureLoader();
+				var texture = textureLoader.load( 'https://alexan0308.github.io/threejs/examples/textures/checkerboard.jpg' );
+				texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+				texture.repeat.set( 4, 4 );	texture.offset.set( 0.5, 0 );
 
-				var Material = new THREE.MeshBasicMaterial( { map: Texture, side: THREE.DoubleSide } );
+				var Material = new THREE.MeshBasicMaterial( { map: texture, side: THREE.DoubleSide } );
 				var Geometry = new THREE.PlaneGeometry( 400, 400, 1, 1 );
 
 				var checkerboard = new THREE.Mesh( Geometry, Material );
 				checkerboard.position.y = - 1;
 				checkerboard.rotation.x =  Math.PI / 2;
 				scene.add( checkerboard );
-
-
-				EventsControls1 = new EventsControls( camera, renderer.domElement );
-				EventsControls1.map = checkerboard;
-				EventsControls1.offsetUse = true;
-
-				EventsControls1.attachEvent( 'mouseOver', function () {
-
-					this.container.style.cursor = 'pointer';
-
-				});
-
-				EventsControls1.attachEvent( 'mouseOut', function () {
-
-					this.container.style.cursor = 'auto';
-
-				});
-
-				EventsControls1.attachEvent( 'dragAndDrop', function () {
-
-					this.container.style.cursor = 'move';
-					this.focused.position.y = this.previous.y;
-
-				});
-
-				EventsControls1.attachEvent( 'mouseUp', function () {
-
-					this.container.style.cursor = 'auto';
-
-				});
-
-				EventsControls1.attachEvent( 'collision', function () {
-
-					console.log( 'collision!' );
-
-				});
-
-
-				var radius = 20, h = 16, segments = 36;
+              
+              
+				var radius = 25, h = 16, segments = 36;
 				var geometry = new THREE.CylinderGeometry( radius, radius, h, segments );
-				var material = new THREE.MeshPhongMaterial( { color: 0xFFFFF0 } );
+				var material = new THREE.MeshPhongMaterial( { color: 0xFF0000 } );
 
-				var checker = new THREE.Mesh( geometry, material );
+				for (let i=0; i<8; i++) {
+					var checker = new THREE.Mesh( geometry, material );
+					checker.position.set( -175+i*50, h / 2, 175 );
+					scene.add( checker ); 
+					dragObjects.push( checker );
+					clsObjects.push( checker );
+				} 
 
-				checker.position.set( -175, h / 2, 175 );
-				scene.add( checker ); EventsControls1.attach( checker );
-
-				var checker = new THREE.Mesh( geometry, material );
-
-				checker.position.set( -75, h / 2, 175 );
-				scene.add( checker ); EventsControls1.attach( checker );
-
-				var object3D = new THREE.Object3D;
-				var mesh = new THREE.Mesh( geometry, material );
-				object3D.add( mesh ); 
-				var mesh = new THREE.Mesh( geometry, material );
-				mesh.position.y = h; mesh.rotation.x = Math.PI / 2; mesh.rotation.z = Math.PI / 2;
-				object3D.add( mesh );
-				object3D.position.set( 25, h / 2, 175 );
-				scene.add( object3D );  EventsControls1.attach( object3D );
-	
-
-	
-	
-				EventsControls1.collidable = true;
+				var radius = 30, h = 50, segments = 36;
 				var geometry = new THREE.CylinderGeometry( radius, radius, h, segments );
-				var material = new THREE.MeshPhongMaterial( { color: 0x9B2D30 } );
-
-				var checker = new THREE.Mesh( geometry, material ); checker.name = 'checker';
-
-				checker.position.set( -125, h / 2, -25 );
-				scene.add( checker ); EventsControls1.collidableEntities.push( checker );
-
+				var material = new THREE.MeshPhongMaterial( { color: 0x00FFF0 } );	
+				var Tower = new THREE.Mesh( geometry, material );
+				Tower.position.set( -3*radius, h / 2, 0 );
+				scene.add( Tower );
+				clsObjects.push( Tower );
 				
-				var object3D = new THREE.Object3D; object3D.name = 'two checkers';
-				var mesh = new THREE.Mesh( geometry, material.clone() );
-				object3D.add( mesh ); mesh.name = 'bottom checker';
-				var mesh = new THREE.Mesh( geometry, material.clone() );
-				mesh.position.y = h; mesh.rotation.x = Math.PI / 2; mesh.rotation.z = Math.PI / 2;
-				object3D.add( mesh );  mesh.name = 'top checker';
-				object3D.position.set( -25, h / 2, -25 );				
-				scene.add( object3D );  EventsControls1.collidableEntities.push( object3D );
+				var Tower = new THREE.Mesh( geometry, material );
+				Tower.position.set( 3*radius, h / 2, 0 );
+				scene.add( Tower );
+				clsObjects.push( Tower );
+				
+				
+				eventControl = new EventControls( [ ... dragObjects ], camera, renderer.domElement );
+				eventControl.setDraggable( render, true );              
+                eventControl.setMap ( checkerboard );
+                eventControl.setOrbitControl( orbitcontrol );
+				eventControl.addCollisions( clsObjects, 0.65 );
 
+ 				eventControl.attachEvent( 'mouseUp', function () {
+				
+					this.event.object.position.x = 25 + 50 * Math.round( ( this.event.object.position.x - 25 ) / 50 );
+					this.event.object.position.z = 25 + 50 * Math.round( ( this.event.object.position.z - 25 ) / 50 );
+					render();
+                  
+				});             
+              //
 
+				window.addEventListener( 'resize', onWindowResize );
 
-		
+			}
 
-				EventsControls5 = new EventsControls( camera, renderer.domElement );
-				EventsControls5.attach( checkerboard );
+			function onWindowResize() {
 
-				EventsControls5.attachEvent( 'mouseOver', function () {
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
 
-					controls.enabled = false;
-					controls.target0.copy( controls.target );
-					controls.position0.copy( controls.object.position );
+				renderer.setSize( window.innerWidth, window.innerHeight );
 
-				});
-
-				EventsControls5.attachEvent( 'mouseOut', function () {
-
-					controls.reset();
-					controls.target.copy( controls.target0 );
-					controls.object.position.copy( controls.position0 );
-					controls.update();
-					controls.enabled = true;
-
-				});
+				render();
 
 			}
 
 			function animate() {
 
-					requestAnimationFrame(animate);
-					render();
+				requestAnimationFrame( animate );
+				render();
 
 			}
-
 
 			function render() {
 
-					stats.update();
-					controls.update();
-					renderer.render(scene, camera);
+				renderer.render( scene, camera );
 
 			}
+          
+
+          	function getRandomInt(min, max) {
+                min = Math.ceil(min);
+                max = Math.floor(max);
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+          
+
 
 		</script>
 
