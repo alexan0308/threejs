@@ -1,7 +1,7 @@
  /** This EventControls will allow to facilitate development speed for simple manipulations by means of a mouse
  * - point and click, drag and drop.
  * @author Vildanov Almaz / alvild@gmail.com
- *  version 11.19.2023.
+ *  version 15.03.2024.
  */
 
 import {
@@ -10,7 +10,9 @@ import {
 	Plane,
 	Raycaster,
 	Vector2,
-	Vector3
+	Vector3,
+	Box3,
+	Mesh
 } from 'three';
 
 const _raycaster = new Raycaster();
@@ -48,6 +50,9 @@ class EventControls extends EventDispatcher {
 		//this.mouseOvered = null; // наведенный объект  
         this.event = new _Event();
         this.orbitControl = null;
+        this.collisions = null;	// array Box3
+        this.precision = 1;	// array Box3		
+
         this.map = null;
 		this.previous = new Vector3(); // предыдущие координаты выделенного объекта
 		this.offset = new Vector3(0,0,0);
@@ -102,7 +107,20 @@ class EventControls extends EventDispatcher {
               break;
           }
 
-		}      
+		}
+
+        this.addCollisions = function ( objects, precision ) {
+			scope.precision = precision;
+			scope.collisions = [];
+			let _obj = null;
+			for (let i=0; i<objects.length; i++) {
+				_obj = objects[i].clone();	
+				_obj.scale.x = precision; _obj.scale.y = precision; _obj.scale.z = precision;
+				let Box = new Box3().setFromObject(_obj);
+				scope.collisions.push( Box );
+			}
+			_obj = null;
+        }		
       
 		this.plane = new Plane( new Vector3( 0, 1, 0 ) );
        // this.plane.translate ( new Vector3( 0, 200, 0 ) );
@@ -188,9 +206,41 @@ class EventControls extends EventDispatcher {
 				if ( scope._DisplaceIntersectsMap.length > 0 ) {
 				
 				   // console.log( _offset );
-                    _selected.position.copy( scope._DisplaceIntersectsMap[ 0 ].point.sub( _offset ).applyMatrix4( _inverseMatrix ) ); 
-                   // _selected.position.copy( scope._DisplaceIntersectsMap[ 0 ].point.applyMatrix4( _inverseMatrix ) ); 					
-					scope.dragAndDrop(); 
+					scope.previous.copy( _selected.position );
+					//console.log( "Pre", scope.previous );
+					
+					let newPos = new Vector3(0,0,0).copy( scope._DisplaceIntersectsMap[ 0 ].point.sub( _offset ).applyMatrix4( _inverseMatrix ) );
+						
+					_selected.position.copy( newPos );
+						//if ( scope.collisions ) scope.collisions[ scope.event.item ].copy( _selected.geometry.boundingBox ).applyMatrix4( _selected.matrixWorld ); 					
+					//console.log( "New", newPos );					
+					scope.flag_collision = false;
+					if ( scope.collisions ) {	
+						//let bb = scope.collisions[ scope.event.item ];
+						let bb = new Box3().setFromObject( _selected );						
+							for (let i=0; i<scope.collisions.length; i++) {
+								
+								if ( i==scope.event.item) continue;
+								let other = scope.collisions[ i ];
+								//let other = new Box3().setFromObject( scope.collisions[i] );
+								if (bb.intersectsBox(other)) {
+									scope.flag_collision = true;
+									//console.log( "intersext" ); 
+									_selected.position.copy( scope.previous );
+										//scope.collisions[ scope.event.item ] = scope.collisions[ scope.event.item ].copy( _selected.geometry.boundingBox ).applyMatrix4( _selected.matrixWorld ); 
+									continue;
+									//this.event.object.position.copy( this.previous );
+								}
+							} 
+						//	if ( scope.flag_collision ) {
+								//_selected.position.copy( scope.previous ); 
+								//console.log( scope.collisions[scope.event.item] );						
+							//}	
+							
+					}	
+						scope.dragAndDrop(); 					
+
+                   // _selected.position.copy( scope._DisplaceIntersectsMap[ 0 ].point.applyMatrix4( _inverseMatrix ) );			   
 					_domElement.style.cursor = 'move';
 				}				
 				
@@ -325,8 +375,13 @@ class EventControls extends EventDispatcher {
             if (  scope.draggable === false ) return;
 
 			if ( _selected ) {
-
-				scope.mouseUp();
+				scope.mouseUp();			
+					if ( scope.collisions ) {	
+						let _obj = _selected.clone()
+						_obj.scale.x = scope.precision; _obj.scale.y = scope.precision; _obj.scale.z = scope.precision;
+						scope.collisions[ scope.event.item ] = new Box3().setFromObject(_obj);
+						_obj = null;
+					}
 				scope.dispatchEvent( { type: 'dragend', object: _selected } );
 				_selected = null; 
                 scope.event.object = null; scope.event.item = null;
